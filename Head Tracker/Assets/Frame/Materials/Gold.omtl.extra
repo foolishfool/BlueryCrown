@@ -1,0 +1,39 @@
+[
+  {
+    "guid": {
+      "a": "09dbe13e-92c3-26bd-cb37-b4129d020a26",
+      "b": ""
+    },
+    "extraType": "ResItemMaterialOmtl",
+    "name": "Gold",
+    "expandInPanel": true,
+    "objGuid": "",
+    "rttiType": "Material",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "skinObjGuid": "Guid(5639925838743952879, 9224156711942787736)",
+    "references": [
+      {
+        "propertyName": "_AlbedoTexture",
+        "guid": "00000000-0000-0000-0000-00000000001e"
+      },
+      {
+        "propertyName": "_AmbientTexture",
+        "guid": "00000000-0000-0000-0000-00000000001e"
+      },
+      {
+        "propertyName": "_NormalTexture",
+        "guid": "00000000-0000-0000-0000-00000000001f"
+      },
+      {
+        "propertyName": "_MRAOTexture",
+        "guid": "00000000-0000-0000-0000-00000000001c"
+      },
+      {
+        "propertyName": "_EmissiveTexture",
+        "guid": "00000000-0000-0000-0000-00000000001c"
+      }
+    ]
+  }
+]

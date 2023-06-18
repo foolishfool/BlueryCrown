@@ -1,0 +1,27 @@
+[
+  {
+    "guid": {
+      "a": "6d7145f5-f114-4c32-cbfb-5727aea9eb72",
+      "b": ""
+    },
+    "extraType": "ResItemPNGImage",
+    "name": "A42(4)",
+    "expandInPanel": true,
+    "objGuid": "",
+    "rttiType": "Texture2D",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "compressionType": 0,
+    "quality": 0,
+    "maxResolution": 512,
+    "enableMipmap": false,
+    "filterMin": 1,
+    "filterMag": 1,
+    "filterMipmap": 0,
+    "wrapModeS": 0,
+    "wrapModeT": 0,
+    "wrapModeR": 0,
+    "premultiplyAlpha": false
+  }
+]

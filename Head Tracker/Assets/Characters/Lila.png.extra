@@ -1,0 +1,27 @@
+[
+  {
+    "guid": {
+      "a": "e4b8543f-699e-0af1-131b-b6c280c68c2a",
+      "b": ""
+    },
+    "extraType": "ResItemPNGImage",
+    "name": "Lila",
+    "expandInPanel": true,
+    "objGuid": "",
+    "rttiType": "Texture2D",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "compressionType": 0,
+    "quality": 0,
+    "maxResolution": 512,
+    "enableMipmap": false,
+    "filterMin": 1,
+    "filterMag": 1,
+    "filterMipmap": 0,
+    "wrapModeS": 0,
+    "wrapModeT": 0,
+    "wrapModeR": 0,
+    "premultiplyAlpha": false
+  }
+]

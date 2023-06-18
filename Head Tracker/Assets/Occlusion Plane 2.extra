@@ -1,0 +1,15 @@
+[
+  {
+    "guid": {
+      "a": "12477ee0-623d-cac9-475d-6d0812727d6c",
+      "b": ""
+    },
+    "extraType": "ResItemFolder",
+    "name": "Occlusion Plane 2",
+    "expandInPanel": true,
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "objGuid": ""
+  }
+]

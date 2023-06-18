@@ -1,0 +1,39 @@
+[
+  {
+    "guid": {
+      "a": "fc67bc3d-9c9f-1364-22ac-72dbddf57367",
+      "b": ""
+    },
+    "extraType": "ResItemMaterialOmtl",
+    "name": "FilmStrip",
+    "expandInPanel": true,
+    "objGuid": "",
+    "rttiType": "Material",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "skinObjGuid": "Guid(11765604906633882947, 3315809037351278755)",
+    "references": [
+      {
+        "propertyName": "_AlbedoTexture",
+        "guid": "00000000-0000-0000-0000-00000000001e"
+      },
+      {
+        "propertyName": "_AmbientTexture",
+        "guid": "00000000-0000-0000-0000-00000000001e"
+      },
+      {
+        "propertyName": "_NormalTexture",
+        "guid": "00000000-0000-0000-0000-00000000001f"
+      },
+      {
+        "propertyName": "_MRAOTexture",
+        "guid": "00000000-0000-0000-0000-00000000001c"
+      },
+      {
+        "propertyName": "_EmissiveTexture",
+        "guid": "00000000-0000-0000-0000-00000000001c"
+      }
+    ]
+  }
+]

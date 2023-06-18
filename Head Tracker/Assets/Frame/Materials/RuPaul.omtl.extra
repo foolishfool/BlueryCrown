@@ -1,0 +1,39 @@
+[
+  {
+    "guid": {
+      "a": "476730d9-8e30-893d-3d3e-13d5e2ddda7d",
+      "b": ""
+    },
+    "extraType": "ResItemMaterialOmtl",
+    "name": "RuPaul",
+    "expandInPanel": true,
+    "objGuid": "",
+    "rttiType": "Material",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "skinObjGuid": "Guid(5785300201491515000, 14744863826640481212)",
+    "references": [
+      {
+        "propertyName": "_AlbedoTexture",
+        "guid": "00000000-0000-0000-0000-00000000001e"
+      },
+      {
+        "propertyName": "_AmbientTexture",
+        "guid": "00000000-0000-0000-0000-00000000001e"
+      },
+      {
+        "propertyName": "_NormalTexture",
+        "guid": "00000000-0000-0000-0000-00000000001f"
+      },
+      {
+        "propertyName": "_MRAOTexture",
+        "guid": "00000000-0000-0000-0000-00000000001c"
+      },
+      {
+        "propertyName": "_EmissiveTexture",
+        "guid": "00000000-0000-0000-0000-00000000001c"
+      }
+    ]
+  }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "guid": {
+      "a": "9240d5d6-7d3a-d938-52ef-d5ed8477d725",
+      "b": ""
+    },
+    "extraType": "ResItemFolder",
+    "name": "Characters",
+    "expandInPanel": false,
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "objGuid": ""
+  }
+]

@@ -1,0 +1,106 @@
+%YAML 1.1
+--- !Mesh &1
+name: Glass Panel
+guid: {a: 12773365181436154876, b: 14891338703582909110}
+boundingBox: {min: {x: -0.8818374, y: -0.9596425, z: 0.0007808516}, max: {x: 0.8818374, y: 1.244951, z: 0.0007808516}}
+vertices:
+  - -0.8818374276161194
+  - -0.9596424698829651
+  - 0.0007808516384102404
+  - 0.3823218643665314
+  - 0.992678165435791
+  - 0
+  - 0
+  - 1
+  - 2.026021945766843e-07
+  - 1
+  - 0
+  - 0
+  - -0.8818374276161194
+  - 1.244951128959656
+  - 0.0007808516384102404
+  - 0.617678165435791
+  - 0.9926782250404358
+  - 0
+  - 0
+  - 1
+  - 0
+  - 1
+  - 0
+  - 0
+  - 0.8818374276161194
+  - -0.9596424698829651
+  - 0.0007808516384102404
+  - 0.3823218643665314
+  - 0.757321834564209
+  - 0
+  - 0
+  - 1
+  - 0
+  - 1
+  - 0
+  - 0
+  - 0.8818374276161194
+  - 1.244951128959656
+  - 0.0007808516384102404
+  - 0.6176781058311462
+  - 0.757321834564209
+  - 0
+  - 0
+  - 1
+  - 0
+  - 1
+  - 0
+  - 0
+instanceDataStride: 0
+materialIndex: 4294967295
+vertexAttribs:
+  - __class: VertexAttribDesc
+    name: ""
+    guid: {a: 10900455252778211069, b: 14414736496056560557}
+    semantic:
+      __class: VertexAttribType
+      value: POSITION
+    bindingIndex: 0
+    offset: 0
+    componentCount: 3
+  - __class: VertexAttribDesc
+    name: ""
+    guid: {a: 11763748867384519609, b: 5962598402751079613}
+    semantic:
+      __class: VertexAttribType
+      value: TEXCOORD0
+    bindingIndex: 0
+    offset: 12
+    componentCount: 2
+  - __class: VertexAttribDesc
+    name: ""
+    guid: {a: 14070349756430565681, b: 15800116018991550338}
+    semantic:
+      __class: VertexAttribType
+      value: NORMAL
+    bindingIndex: 0
+    offset: 20
+    componentCount: 3
+  - __class: VertexAttribDesc
+    name: ""
+    guid: {a: 7008389727118197794, b: 17566895471368263855}
+    semantic:
+      __class: VertexAttribType
+      value: TANGENT
+    bindingIndex: 0
+    offset: 32
+    componentCount: 4
+submeshes:
+  - __class: SubMesh
+    name: ""
+    guid: {a: 17600508375927585425, b: 12319304007750273921}
+    useIndices32: false
+    boundingBox: {min: {x: 3.402823e+38, y: 3.402823e+38, z: 3.402823e+38}, max: {x: -3.402823e+38, y: -3.402823e+38, z: -3.402823e+38}}
+    indices16: [1, 0, 2, 1, 2, 3]
+    indicesCount: 6
+    instanceCount: 0
+    primitive:
+      __class: Primitive
+      value: TRIANGLES
+clearAfterUpload: false

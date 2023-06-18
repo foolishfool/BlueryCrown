@@ -1,0 +1,27 @@
+[
+  {
+    "guid": {
+      "a": "410d4d43-2b90-4629-c6fd-c0227ade4a44",
+      "b": ""
+    },
+    "extraType": "ResItemPNGImage",
+    "name": "A23",
+    "expandInPanel": true,
+    "objGuid": "",
+    "rttiType": "Texture2D",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "compressionType": 0,
+    "quality": 0,
+    "maxResolution": 512,
+    "enableMipmap": false,
+    "filterMin": 1,
+    "filterMag": 1,
+    "filterMipmap": 0,
+    "wrapModeS": 0,
+    "wrapModeT": 0,
+    "wrapModeR": 0,
+    "premultiplyAlpha": false
+  }
+]

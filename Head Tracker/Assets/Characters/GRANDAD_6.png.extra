@@ -1,0 +1,27 @@
+[
+  {
+    "guid": {
+      "a": "7d032b37-ee38-f0bc-f01c-f0e01d0f1f2f",
+      "b": ""
+    },
+    "extraType": "ResItemPNGImage",
+    "name": "GRANDAD_6",
+    "expandInPanel": true,
+    "objGuid": "",
+    "rttiType": "Texture2D",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "compressionType": 0,
+    "quality": 0,
+    "maxResolution": 512,
+    "enableMipmap": false,
+    "filterMin": 1,
+    "filterMag": 1,
+    "filterMipmap": 0,
+    "wrapModeS": 0,
+    "wrapModeT": 0,
+    "wrapModeR": 0,
+    "premultiplyAlpha": false
+  }
+]

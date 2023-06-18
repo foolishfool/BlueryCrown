@@ -1,0 +1,157 @@
+%YAML 1.1
+--- !Model &1
+name: Frame
+guid: {a: 13279609462650607959, b: 13035340632107964601}
+ModelNode: {localId: 2}
+Meshes:
+  - {localId: 1, path: 7676f056-4937-c1d3-f3e6-f0e06a1c9a4a--Frame_Cube.001.mesh}
+  - {localId: 2, path: 7676f056-4937-c1d3-f3e6-f0e06a1c9a4a--Frame_Cube.001.mesh}
+  - {localId: 3, path: 7676f056-4937-c1d3-f3e6-f0e06a1c9a4a--Frame_Cube.001.mesh}
+  - {localId: 1, path: 7676f056-4937-c1d3-f3e6-f0e06a1c9a4a--Glass_Panel_Cube.002.mesh}
+  - {localId: 1, path: 7676f056-4937-c1d3-f3e6-f0e06a1c9a4a--Cylinder.mesh}
+  - {localId: 2, path: 7676f056-4937-c1d3-f3e6-f0e06a1c9a4a--Cylinder.mesh}
+  - {localId: 3, path: 7676f056-4937-c1d3-f3e6-f0e06a1c9a4a--Cylinder.mesh}
+  - {localId: 4, path: 7676f056-4937-c1d3-f3e6-f0e06a1c9a4a--Cylinder.mesh}
+  - {localId: 5, path: 7676f056-4937-c1d3-f3e6-f0e06a1c9a4a--Cylinder.mesh}
+  - {localId: 6, path: 7676f056-4937-c1d3-f3e6-f0e06a1c9a4a--Cylinder.mesh}
+  - {localId: 7, path: 7676f056-4937-c1d3-f3e6-f0e06a1c9a4a--Cylinder.mesh}
+  - {localId: 8, path: 7676f056-4937-c1d3-f3e6-f0e06a1c9a4a--Cylinder.mesh}
+  - {localId: 9, path: 7676f056-4937-c1d3-f3e6-f0e06a1c9a4a--Cylinder.mesh}
+  - {localId: 10, path: 7676f056-4937-c1d3-f3e6-f0e06a1c9a4a--Cylinder.mesh}
+  - {localId: 11, path: 7676f056-4937-c1d3-f3e6-f0e06a1c9a4a--Cylinder.mesh}
+  - {localId: 12, path: 7676f056-4937-c1d3-f3e6-f0e06a1c9a4a--Cylinder.mesh}
+  - {localId: 13, path: 7676f056-4937-c1d3-f3e6-f0e06a1c9a4a--Cylinder.mesh}
+  - {localId: 14, path: 7676f056-4937-c1d3-f3e6-f0e06a1c9a4a--Cylinder.mesh}
+  - {localId: 15, path: 7676f056-4937-c1d3-f3e6-f0e06a1c9a4a--Cylinder.mesh}
+  - {localId: 16, path: 7676f056-4937-c1d3-f3e6-f0e06a1c9a4a--Cylinder.mesh}
+  - {localId: 17, path: 7676f056-4937-c1d3-f3e6-f0e06a1c9a4a--Cylinder.mesh}
+--- !ModelNode &2
+name: RootNode
+guid: {a: 10467606020732474506, b: 8774908950869473949}
+children:
+  - {localId: 3}
+transform: {localId: 7}
+--- !ModelNode &3
+name: Frame.obj
+guid: {a: 9821071577829898718, b: 4314169029165354917}
+children:
+  - {localId: 4}
+  - {localId: 10}
+  - {localId: 11}
+parent: {localId: 2}
+transform: {localId: 6}
+--- !ModelNode &4
+name: Frame_Cube.001
+guid: {a: 16522476582695879232, b: 8867649288317075382}
+mesh_index: [0, 1, 2]
+parent: {localId: 3}
+transform: {localId: 5}
+materialIndices: [1, 2, 3]
+--- !Transform &5
+name: Frame_Cube.001
+guid: {a: 10827814531721545386, b: 3907045579767845809}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 6}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &6
+name: Frame.obj
+guid: {a: 10540658807433186907, b: 11368738243314660489}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 7}
+children:
+  - {localId: 5}
+  - {localId: 8}
+  - {localId: 9}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &7
+name: RootNode
+guid: {a: 2540230900991580363, b: 4570864928305139330}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+children:
+  - {localId: 6}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &8
+name: Glass_Panel_Cube.002
+guid: {a: 7153497861875509897, b: 11082793350244394418}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 6}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &9
+name: Cylinder
+guid: {a: 309024186482839823, b: 18117255977492852119}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 6}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !ModelNode &10
+name: Glass_Panel_Cube.002
+guid: {a: 9025522807366891544, b: 7868939599422631868}
+mesh_index: [3]
+parent: {localId: 3}
+transform: {localId: 8}
+materialIndices: [4]
+--- !ModelNode &11
+name: Cylinder
+guid: {a: 9674781867113009616, b: 14389202614800650161}
+mesh_index:
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
+  - 17
+  - 18
+  - 19
+  - 20
+parent: {localId: 3}
+transform: {localId: 9}
+materialIndices:
+  - 5
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
+  - 17
+  - 18
+  - 19
+  - 20
+  - 21

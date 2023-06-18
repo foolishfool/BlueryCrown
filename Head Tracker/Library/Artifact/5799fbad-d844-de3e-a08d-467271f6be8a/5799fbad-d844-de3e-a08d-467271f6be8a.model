@@ -1,0 +1,19 @@
+%YAML 1.1
+--- !Model &1
+name: Frame2
+guid: {a: 12846427659126129977, b: 8945908937198487198}
+ModelNode: {localId: 2}
+--- !ModelNode &2
+name: SkeletonAndRenderRoot
+guid: {a: 8881670465718076068, b: 4014997071018998695}
+transform: {localId: 3}
+--- !Transform &3
+name: SkeletonAndRenderRoot
+guid: {a: 10971083273598651827, b: 14759785725439155882}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+mobility:
+  __class: Mobility
+  value: Dynamic

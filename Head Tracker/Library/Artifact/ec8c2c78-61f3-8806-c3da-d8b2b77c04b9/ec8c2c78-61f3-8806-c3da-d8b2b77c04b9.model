@@ -1,0 +1,85 @@
+%YAML 1.1
+--- !Model &1
+name: Frame2 (1)
+guid: {a: 18324160222187091757, b: 4345262293128754102}
+ModelNode: {localId: 2}
+Meshes:
+  - {localId: 1, path: ec8c2c78-61f3-8806-c3da-d8b2b77c04b9--Frame.mesh}
+  - {localId: 1, path: ec8c2c78-61f3-8806-c3da-d8b2b77c04b9--Glass Panel.mesh}
+  - {localId: 1, path: ec8c2c78-61f3-8806-c3da-d8b2b77c04b9--Cylinder.mesh}
+--- !ModelNode &2
+name: SkeletonAndRenderRoot
+guid: {a: 13565930505609558807, b: 12901553587167012261}
+children:
+  - {localId: 3}
+  - {localId: 8}
+  - {localId: 9}
+transform: {localId: 5}
+--- !ModelNode &3
+name: Frame
+guid: {a: 16810060822250654880, b: 7524883155643576960}
+mesh_index: [0]
+parent: {localId: 2}
+transform: {localId: 4}
+materialIndices: [0]
+--- !Transform &4
+name: Frame
+guid: {a: 1315983214129054164, b: 15805998110179959984}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 100, y: 100, z: 100}
+localOrientation: {w: 0.7071067, x: -0.7071068, y: 0, z: 0}
+parent: {localId: 5}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &5
+name: SkeletonAndRenderRoot
+guid: {a: 10901155376289101912, b: 6802809753713893256}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+children:
+  - {localId: 4}
+  - {localId: 6}
+  - {localId: 7}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &6
+name: Glass Panel
+guid: {a: 14790617383532876585, b: 16935970048670665878}
+enabled: true
+localPosition: {x: 0, y: 0, z: -1.697594}
+localScale: {x: 100, y: 100, z: 100}
+localOrientation: {w: 0.7071067, x: -0.7071068, y: 0, z: 0}
+parent: {localId: 5}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &7
+name: Cylinder
+guid: {a: 2759707973202643480, b: 15896536747899782018}
+enabled: true
+localPosition: {x: 0, y: 14.7751, z: -244.1948}
+localScale: {x: 100, y: 100, z: 100}
+localOrientation: {w: 0.7055198, x: -0.7055197, y: 0.04734839, z: 0.04734839}
+parent: {localId: 5}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !ModelNode &8
+name: Glass Panel
+guid: {a: 7730213685907436456, b: 15546252826569672894}
+mesh_index: [1]
+parent: {localId: 2}
+transform: {localId: 6}
+materialIndices: [1]
+--- !ModelNode &9
+name: Cylinder
+guid: {a: 7297129216688037100, b: 17689960495442711428}
+mesh_index: [2]
+parent: {localId: 2}
+transform: {localId: 7}
+materialIndices: [2]

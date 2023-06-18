@@ -1,0 +1,27 @@
+[
+  {
+    "guid": {
+      "a": "01f9f337-9a38-da97-031f-abb5dc544ef6",
+      "b": ""
+    },
+    "extraType": "ResItemPNGImage",
+    "name": "Rusty",
+    "expandInPanel": true,
+    "objGuid": "",
+    "rttiType": "Texture2D",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "compressionType": 0,
+    "quality": 0,
+    "maxResolution": 512,
+    "enableMipmap": false,
+    "filterMin": 1,
+    "filterMag": 1,
+    "filterMipmap": 0,
+    "wrapModeS": 0,
+    "wrapModeT": 0,
+    "wrapModeR": 0,
+    "premultiplyAlpha": false
+  }
+]

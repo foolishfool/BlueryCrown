@@ -1,0 +1,27 @@
+[
+  {
+    "guid": {
+      "a": "8cacdb17-3278-314b-f89d-30e37f36ad28",
+      "b": ""
+    },
+    "extraType": "ResItemPNGImage",
+    "name": "Pat",
+    "expandInPanel": true,
+    "objGuid": "",
+    "rttiType": "Texture2D",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "compressionType": 0,
+    "quality": 0,
+    "maxResolution": 512,
+    "enableMipmap": false,
+    "filterMin": 1,
+    "filterMag": 1,
+    "filterMipmap": 0,
+    "wrapModeS": 0,
+    "wrapModeT": 0,
+    "wrapModeR": 0,
+    "premultiplyAlpha": false
+  }
+]

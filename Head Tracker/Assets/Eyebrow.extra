@@ -1,0 +1,15 @@
+[
+  {
+    "guid": {
+      "a": "7420f12e-87c0-7ee3-f58f-84bf144a09c2",
+      "b": ""
+    },
+    "extraType": "ResItemFolder",
+    "name": "Eyebrow",
+    "expandInPanel": true,
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "objGuid": ""
+  }
+]

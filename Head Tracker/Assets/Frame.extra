@@ -1,0 +1,15 @@
+[
+  {
+    "guid": {
+      "a": "bedb16cd-d604-a4b3-8c55-f346b080906c",
+      "b": ""
+    },
+    "extraType": "ResItemFolder",
+    "name": "Frame",
+    "expandInPanel": true,
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "objGuid": ""
+  }
+]

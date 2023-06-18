@@ -1,0 +1,1974 @@
+%YAML 1.1
+--- !Scene &1
+name: ""
+guid: {a: 7875085725817850609, b: 329766013828765107}
+editSceneGuid: {a: 0, b: 0}
+calibrateVer: V5
+entities:
+  - __class: Entity
+    name: Camera
+    guid: {a: 17892678610801857370, b: 559697082159424149}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 2}
+      - __class: Camera
+        name: ""
+        guid: {a: 12556560734000964803, b: 7508859945702231687}
+        enabled: true
+        layerVisibleMask: {__class: DynamicBitset, numBits: 64, values: [1, 0]}
+        renderOrder: 10
+        type:
+          __class: CameraType
+          value: PERSPECTIVE
+        clearColor: {r: 0, g: 0, b: 0, a: 1}
+        clearType:
+          __class: CameraClearType
+          value: DEPTH
+        alwaysClear: false
+        viewport: {x: 0, y: 0, w: 1, h: 1}
+        fovy: 66.19000244140625
+        orthoScale: 1
+        zNear: 0.001000000047497451
+        zFar: 1000
+        renderTexture: {localId: 1, path: 00000000-0000-0000-0000-000000000009}
+        isRootCamera: false
+    layer: 0
+  - __class: Entity
+    name: Directional Light
+    guid: {a: 3261253174792506660, b: 16680708562180406145}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 4}
+      - __class: DirectionalLight
+        name: ""
+        guid: {a: 13350271480239526722, b: 3096813384112271290}
+        enabled: true
+        color: {x: 1, y: 1, z: 1}
+        intensiy: 1
+        shadowEnable: false
+        shadowEnableNew: false
+        shadowResolution: {x: 256, y: 256}
+        shadowBias: 0
+        shadowStrength: 1
+        useSoftShadow: false
+        shadowSoftness: 1
+        blurRadius: 1.299999952316284
+        blurNum: 0
+        selfShadowGradient: 0
+        shadowColor: {x: 0, y: 0, z: 0}
+        InitStrength: 0.300000011920929
+        EsmC: 0.03500000014901161
+        lightingLayers: {__class: DynamicBitset, numBits: 64, values: [4294967295, 4294967295]}
+        renderMode:
+          __class: LightRenderMode
+          value: AUTO
+        shadowArea: 100
+        autoShadowFrustum: true
+        shadowFrustumZNear: 1
+        shadowFrustumZFar: 100
+        cookieSize: 1
+        softShadowType:
+          __class: SoftShadowType
+          value: PCF
+        EVSMExponents: {x: 4, y: 4}
+        contactShadowEnable: false
+        lightUnit:
+          __class: LightUnit
+          value: Lux
+    layer: 0
+  - __class: Entity
+    name: Head Tracker
+    guid: {a: 2253815487157168038, b: 13727790801446539406}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 5}
+      - __class: FaceCapture
+        name: ""
+        guid: {a: 10902886527993346287, b: 17251987034660739487}
+        enabled: true
+        faceid: 0
+        captureType:
+          __class: CaptureType
+          value: HUMAN
+        captureVersion:
+          __class: CaptureVersion
+          value: SOLVEPNP
+        alignoffset: {x: 0, y: 0}
+        alignz: 5
+        isGlobal: true
+        useSceneCameraFov: false
+        isPictureMode: false
+        isFaceCaptureEnable: true
+        calirateVersion:
+          __class: CalibrationType
+          value: V5
+        nearPlane: 0.1000000014901161
+        farPlane: 10000
+        useSceneCameraNearFar: false
+        behaviorWhenTrackerDisappear:
+          __class: BehaviorWhenTrackerDisappear
+          value: ALIGN_VISIBILITY_WITH_TRACKER
+        entityRotateType:
+          __class: EntityRotateType
+          value: ROTATE_AROUND_XYZ_AXIS
+    layer: 0
+  - __class: Entity
+    name: Frame
+    guid: {a: 6939939167054857943, b: 11771162878451205534}
+    scene: {localId: 1}
+    selfvisible: false
+    components:
+      - {localId: 69}
+    layer: 0
+  - __class: Entity
+    name: Head
+    guid: {a: 3189149133488875380, b: 6267770095613341374}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 6}
+      - __class: MeshRenderer
+        name: ""
+        guid: {a: 4417965295374796170, b: 12282488638266347944}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 00000000-0000-0000-0000-000000000071--00000000-0000-0000-0000-000000000071.material}
+        sortingOrder: 0
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 00000000-0000-0000-0000-000000000005}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: SkeletonAndRenderRoot
+    guid: {a: 16880860648572386680, b: 15006647715420929665}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 70}
+    layer: 0
+  - __class: Entity
+    name: ROOT
+    guid: {a: 16521512101512103524, b: 4206511207294137}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 71}
+    layer: 0
+  - __class: Entity
+    name: Frame
+    guid: {a: 3408455728751188832, b: 6986241252618546110}
+    scene: {localId: 1}
+    selfvisible: false
+    components:
+      - {localId: 72}
+    layer: 0
+  - __class: Entity
+    name: Frame_temp0
+    guid: {a: 10470603683303430484, b: 12416837111229708934}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 73}
+      - __class: MeshRenderer
+        name: mesh0_renderer
+        guid: {a: 15584531281930666226, b: 12221523086294937248}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: f2d707b0-6c05-5ada-aff2-964056cfd708--f2d707b0-6c05-5ada-aff2-964056cfd708.material}
+        sortingOrder: 21
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Frame.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Frame_temp1
+    guid: {a: 18034744134687948686, b: 2698377117611992456}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 74}
+      - __class: MeshRenderer
+        name: mesh1_renderer
+        guid: {a: 2974797744299818265, b: 971531001464959655}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 09007f93-1e9f-efae-8242-7083d3023474--09007f93-1e9f-efae-8242-7083d3023474.material}
+        sortingOrder: 22
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 2, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Frame.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Frame_temp2
+    guid: {a: 12414842110302342396, b: 5637913944463510671}
+    scene: {localId: 1}
+    selfvisible: false
+    components:
+      - {localId: 75}
+      - __class: MeshRenderer
+        name: mesh2_renderer
+        guid: {a: 11115798508265088909, b: 5201309744178727096}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: f2d707b0-6c05-5ada-aff2-964056cfd708--f2d707b0-6c05-5ada-aff2-964056cfd708.material}
+        sortingOrder: 23
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 3, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Frame.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Glass Panel
+    guid: {a: 9026632446316460814, b: 2341146312918527413}
+    scene: {localId: 1}
+    selfvisible: false
+    components:
+      - {localId: 76}
+      - __class: MeshRenderer
+        name: mesh3_renderer
+        guid: {a: 13711038463164413767, b: 7335132076376190109}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 00000000-0000-0000-0000-000000000011--00000000-0000-0000-0000-000000000011.material}
+        sortingOrder: 24
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Glass Panel.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Cylinder
+    guid: {a: 15369802926714029423, b: 13058787303408755381}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 77}
+    layer: 0
+  - __class: Entity
+    name: Cylinder_temp0
+    guid: {a: 1823321034909296205, b: 596015673248375941}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 78}
+      - __class: MeshRenderer
+        name: mesh4_renderer
+        guid: {a: 9026295237560682546, b: 14985950603226269572}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: fc67bc3d-9c9f-1364-22ac-72dbddf57367--fc67bc3d-9c9f-1364-22ac-72dbddf57367.material}
+        sortingOrder: 25
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Cylinder.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Cylinder_temp1
+    guid: {a: 6939991193411114570, b: 15678372424388203417}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 79}
+      - __class: MeshRenderer
+        name: mesh5_renderer
+        guid: {a: 7370678842756336017, b: 4231961341917016467}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: bdc46c3f-620d-7a30-79aa-c011755afeea--bdc46c3f-620d-7a30-79aa-c011755afeea.material}
+        sortingOrder: 26
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 2, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Cylinder.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Cylinder_temp2
+    guid: {a: 2758128994762479531, b: 8161896840163434674}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 80}
+      - __class: MeshRenderer
+        name: mesh6_renderer
+        guid: {a: 8018379164616642264, b: 2558710593230201513}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 566f2ce8-ca6a-7a5c-7a2d-c7dec56cb140--566f2ce8-ca6a-7a5c-7a2d-c7dec56cb140.material}
+        sortingOrder: 27
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 3, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Cylinder.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Cylinder_temp3
+    guid: {a: 4918768459454326581, b: 10717771704366663854}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 81}
+      - __class: MeshRenderer
+        name: mesh7_renderer
+        guid: {a: 5858419349208685791, b: 9339946011940745626}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: ee94d900-5aed-fd69-2a0e-4eee2dd82631--ee94d900-5aed-fd69-2a0e-4eee2dd82631.material}
+        sortingOrder: 28
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 4, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Cylinder.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Cylinder_temp4
+    guid: {a: 12200077861786338740, b: 2908609562609329596}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 82}
+      - __class: MeshRenderer
+        name: mesh8_renderer
+        guid: {a: 3334287900451731516, b: 15732543127989404562}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 17c4bb70-256b-0edc-acfd-71c5969d7d00--17c4bb70-256b-0edc-acfd-71c5969d7d00.material}
+        sortingOrder: 29
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 5, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Cylinder.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Cylinder_temp5
+    guid: {a: 6505849542850884732, b: 9249251664331834018}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 83}
+      - __class: MeshRenderer
+        name: mesh9_renderer
+        guid: {a: 3692977012168001816, b: 210368475108308413}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: ac7a055b-8cd5-c75c-2539-d099dab52358--ac7a055b-8cd5-c75c-2539-d099dab52358.material}
+        sortingOrder: 30
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 6, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Cylinder.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Cylinder_temp6
+    guid: {a: 17025472509530347299, b: 17428418261823252613}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 84}
+      - __class: MeshRenderer
+        name: mesh10_renderer
+        guid: {a: 1749445261757099541, b: 13998570724352340141}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 09dbe13e-92c3-26bd-cb37-b4129d020a26--09dbe13e-92c3-26bd-cb37-b4129d020a26.material}
+        sortingOrder: 31
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 7, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Cylinder.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Cylinder_temp7
+    guid: {a: 11622646309363064176, b: 7146330484913192082}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 85}
+      - __class: MeshRenderer
+        name: mesh11_renderer
+        guid: {a: 2684785591500688207, b: 9606029382409720215}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 3efdbf30-92d6-901a-35b0-8c250fa72d10--3efdbf30-92d6-901a-35b0-8c250fa72d10.material}
+        sortingOrder: 32
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 8, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Cylinder.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Cylinder_temp8
+    guid: {a: 1031173081590454988, b: 11858565480597243024}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 86}
+      - __class: MeshRenderer
+        name: mesh12_renderer
+        guid: {a: 7296038869865574971, b: 10493325056688861575}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: def4eec4-2676-7303-c6ff-bb049206a1ae--def4eec4-2676-7303-c6ff-bb049206a1ae.material}
+        sortingOrder: 33
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 9, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Cylinder.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Cylinder_temp9
+    guid: {a: 13279518317735682249, b: 4857415527494259646}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 87}
+      - __class: MeshRenderer
+        name: mesh13_renderer
+        guid: {a: 10829552263010537076, b: 13115887363930608028}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: d09d454f-0b7b-2d06-e692-de743f38a08f--d09d454f-0b7b-2d06-e692-de743f38a08f.material}
+        sortingOrder: 34
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 10, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Cylinder.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Cylinder_temp10
+    guid: {a: 18107186820479827344, b: 13025220000694882734}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 88}
+      - __class: MeshRenderer
+        name: mesh14_renderer
+        guid: {a: 16377968251043207016, b: 14059088784815167619}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 53e54f71-af56-e353-8fee-d50ee4dcea1e--53e54f71-af56-e353-8fee-d50ee4dcea1e.material}
+        sortingOrder: 35
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 11, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Cylinder.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Cylinder_temp11
+    guid: {a: 7442141931401072078, b: 14537435722892759433}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 89}
+      - __class: MeshRenderer
+        name: mesh15_renderer
+        guid: {a: 16018737604234044906, b: 15605561465314490813}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 476730d9-8e30-893d-3d3e-13d5e2ddda7d--476730d9-8e30-893d-3d3e-13d5e2ddda7d.material}
+        sortingOrder: 36
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 12, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Cylinder.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Cylinder_temp12
+    guid: {a: 2324001717913271613, b: 8119597029765211023}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 90}
+      - __class: MeshRenderer
+        name: mesh16_renderer
+        guid: {a: 5426435581159216440, b: 3744702961562928829}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: f315d9aa-9f86-c11b-5789-0d84be0f6237--f315d9aa-9f86-c11b-5789-0d84be0f6237.material}
+        sortingOrder: 37
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 13, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Cylinder.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Cylinder_temp13
+    guid: {a: 9242312091512931417, b: 15455165545760573353}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 91}
+      - __class: MeshRenderer
+        name: mesh17_renderer
+        guid: {a: 8882452780098873057, b: 18139992709606006411}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 5c62af8a-e6ac-2310-5750-65eed9a0e19c--5c62af8a-e6ac-2310-5750-65eed9a0e19c.material}
+        sortingOrder: 38
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 14, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Cylinder.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Cylinder_temp14
+    guid: {a: 9098443216138018699, b: 10078312902622272656}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 92}
+      - __class: MeshRenderer
+        name: mesh18_renderer
+        guid: {a: 8953977142650822613, b: 9814817666033838766}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 7ff6b01d-05a3-3995-d044-5aa3411a33c5--7ff6b01d-05a3-3995-d044-5aa3411a33c5.material}
+        sortingOrder: 39
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 15, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Cylinder.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Cylinder_temp15
+    guid: {a: 6147352739222266068, b: 13857450528698858675}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 93}
+      - __class: MeshRenderer
+        name: mesh19_renderer
+        guid: {a: 8739690442411487838, b: 9386957989576859037}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: d3fcb77c-60b3-b1b6-d355-b7bfdde51e24--d3fcb77c-60b3-b1b6-d355-b7bfdde51e24.material}
+        sortingOrder: 40
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 16, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Cylinder.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Cylinder_temp16
+    guid: {a: 8235596736186509292, b: 17613134696668008355}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 94}
+      - __class: MeshRenderer
+        name: mesh20_renderer
+        guid: {a: 15730380330749458983, b: 112655696826392495}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 58c40f76-48d3-7ee4-aa14-894b11e2c7bb--58c40f76-48d3-7ee4-aa14-894b11e2c7bb.material}
+        sortingOrder: 41
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 17, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Cylinder.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Cylinder_temp0 (1)
+    guid: {a: 10611415451133582858, b: 7417933238126853308}
+    scene: {localId: 1}
+    selfvisible: false
+    components:
+      - {localId: 95}
+      - __class: MeshRenderer
+        name: mesh4_renderer
+        guid: {a: 15078612821163058272, b: 9598672808359835823}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: fc67bc3d-9c9f-1364-22ac-72dbddf57367--fc67bc3d-9c9f-1364-22ac-72dbddf57367.material}
+        sortingOrder: 42
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 2164083d-0150-c0bd-34d7-efb2d2963d9c--Cylinder.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: General
+    guid: {a: 4985727054144258782, b: 1435733300279580563}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 3}
+      - __class: EffectNode
+        name: ""
+        guid: {a: 4631118255944619630, b: 4038220877300271248}
+        enabled: true
+        outputTextures:
+          - {localId: 1, path: 00000000-0000-0000-0000-000000000009}
+        renderOrder: 0
+        minorOrder: 0
+        type:
+          __class: EffectNodeTag
+          value: Other
+        version: 2
+        rendererType:
+          __class: RendererType
+          value: Metal
+    layer: 0
+  - __class: Entity
+    name: Occlusion Plane 2
+    guid: {a: 4835779682844259394, b: 14788294176193430703}
+    scene: {localId: 1}
+    selfvisible: false
+    components:
+      - {localId: 66}
+    layer: 0
+  - __class: Entity
+    name: SkeletonAndRenderRoot
+    guid: {a: 4644554842562547703, b: 2719920812110305682}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 67}
+    layer: 0
+  - __class: Entity
+    name: Occlusion plane
+    guid: {a: 4895283483100756737, b: 2152549695899166632}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 68}
+      - __class: MeshRenderer
+        name: mesh0_renderer
+        guid: {a: 5261425903104542249, b: 17028102991936270769}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 41915c60-4127-6d4f-b7e5-275f40a12298--41915c60-4127-6d4f-b7e5-275f40a12298.material}
+        sortingOrder: 20
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: e04be90c-cc4e-481a-2bd7-310557f85074--Occlusion plane.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Characters
+    guid: {a: 5120645287132289720, b: 3754250023066040455}
+    scene: {localId: 1}
+    selfvisible: false
+    components:
+      - {localId: 7}
+    layer: 0
+  - __class: Entity
+    name: SkeletonAndRenderRoot
+    guid: {a: 4777787504231160207, b: 15528035283183151786}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 8}
+      - __class: Animator
+        name: ""
+        guid: {a: 4987831907036763658, b: 838906622676530567}
+        enabled: true
+        animations:
+          - {localId: 1, path: 14e34b84-8fc7-de09-6a1e-cff697fd9a0a--Animaz-1_Scene.animaz}
+        runningWrapModes:
+          __class: Map
+          Animaz-1_Scene: 0
+        cullingMode:
+          __class: AnimatorCullingMode
+          value: CULL_UPDATE_PROPERTY
+    layer: 0
+  - __class: Entity
+    name: Character1
+    guid: {a: 4613487953947317352, b: 15098136784002487952}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 9}
+      - __class: MeshRenderer
+        name: mesh0_renderer
+        guid: {a: 5751828397508825929, b: 5408819604046745768}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 444f6a88-7a45-6410-5976-099a8dfd3b23--444f6a88-7a45-6410-5976-099a8dfd3b23.material}
+        sortingOrder: 1
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 14e34b84-8fc7-de09-6a1e-cff697fd9a0a--Character1.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Character2
+    guid: {a: 5270557144263075546, b: 15356920110194183062}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 10}
+      - __class: MeshRenderer
+        name: mesh1_renderer
+        guid: {a: 4634183750424586540, b: 3392075754004467078}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 2fd5387d-0e3b-8426-d95c-177960b214b5--2fd5387d-0e3b-8426-d95c-177960b214b5.material}
+        sortingOrder: 2
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 14e34b84-8fc7-de09-6a1e-cff697fd9a0a--Character2.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Character3
+    guid: {a: 5106088680994673919, b: 3626648179325336964}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 11}
+      - __class: MeshRenderer
+        name: mesh2_renderer
+        guid: {a: 5396046814236346834, b: 15675525303605475713}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 9d50f149-878e-4978-ccd3-1c828959a707--9d50f149-878e-4978-ccd3-1c828959a707.material}
+        sortingOrder: 3
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 14e34b84-8fc7-de09-6a1e-cff697fd9a0a--Character3.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Character4
+    guid: {a: 5227280121960293687, b: 7412004944533536187}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 12}
+      - __class: MeshRenderer
+        name: mesh3_renderer
+        guid: {a: 5375587673557668301, b: 16637295562194036913}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: bce00f98-6182-7727-18c3-c6fbd6a3ddd3--bce00f98-6182-7727-18c3-c6fbd6a3ddd3.material}
+        sortingOrder: 4
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 14e34b84-8fc7-de09-6a1e-cff697fd9a0a--Character4.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Character5
+    guid: {a: 5543750247991075836, b: 12412665607295263127}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 13}
+      - __class: MeshRenderer
+        name: mesh4_renderer
+        guid: {a: 5019900284819887716, b: 12574377367048056971}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 372f7064-8ff9-9b0c-8b96-108dfc7a1ed5--372f7064-8ff9-9b0c-8b96-108dfc7a1ed5.material}
+        sortingOrder: 5
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 14e34b84-8fc7-de09-6a1e-cff697fd9a0a--Character5.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Character6
+    guid: {a: 4861532886658880057, b: 6873244819210797975}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 14}
+      - __class: MeshRenderer
+        name: mesh5_renderer
+        guid: {a: 5177593828206104981, b: 12956435304941423790}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 098c2599-faec-971f-a14c-44f811119073--098c2599-faec-971f-a14c-44f811119073.material}
+        sortingOrder: 6
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 14e34b84-8fc7-de09-6a1e-cff697fd9a0a--Character6.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Character7
+    guid: {a: 5241733246156022443, b: 17040757395544534203}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 15}
+      - __class: MeshRenderer
+        name: mesh6_renderer
+        guid: {a: 5440150272008359559, b: 5241642891773661367}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 56739136-4d7f-7913-ed15-9937a50ea13b--56739136-4d7f-7913-ed15-9937a50ea13b.material}
+        sortingOrder: 7
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 14e34b84-8fc7-de09-6a1e-cff697fd9a0a--Character7.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Character8
+    guid: {a: 4758893108080771168, b: 8656639188081338536}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 16}
+      - __class: MeshRenderer
+        name: mesh7_renderer
+        guid: {a: 4920008928268418392, b: 10211380606194093450}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 73a9eb54-93a1-91b8-3f4d-96d27c1811f5--73a9eb54-93a1-91b8-3f4d-96d27c1811f5.material}
+        sortingOrder: 8
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 14e34b84-8fc7-de09-6a1e-cff697fd9a0a--Character8.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Character9
+    guid: {a: 5303805306411532724, b: 14315482206909511613}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 17}
+      - __class: MeshRenderer
+        name: mesh8_renderer
+        guid: {a: 5739627718202999666, b: 4265474358486549388}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 2e0a660c-e43e-5c4c-89be-26c6c9ec0812--2e0a660c-e43e-5c4c-89be-26c6c9ec0812.material}
+        sortingOrder: 9
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 14e34b84-8fc7-de09-6a1e-cff697fd9a0a--Character9.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Character10
+    guid: {a: 5369276275184236797, b: 5148771729839450023}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 18}
+      - __class: MeshRenderer
+        name: mesh9_renderer
+        guid: {a: 4688688607024889367, b: 9136790073792236467}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 235e1bc3-9707-09f2-83bc-a00f8802555b--235e1bc3-9707-09f2-83bc-a00f8802555b.material}
+        sortingOrder: 10
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 14e34b84-8fc7-de09-6a1e-cff697fd9a0a--Character10.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Character11
+    guid: {a: 5379390764271278127, b: 12242473539454821042}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 19}
+      - __class: MeshRenderer
+        name: mesh10_renderer
+        guid: {a: 5138945550668959970, b: 2794217320055600537}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 876c8a5d-dfb2-d5c0-8d3c-98c0a5329f94--876c8a5d-dfb2-d5c0-8d3c-98c0a5329f94.material}
+        sortingOrder: 11
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 14e34b84-8fc7-de09-6a1e-cff697fd9a0a--Character11.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Character12
+    guid: {a: 4802717838466268531, b: 14537269343411708336}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 20}
+      - __class: MeshRenderer
+        name: mesh11_renderer
+        guid: {a: 4860545361763974870, b: 6595250173937632679}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 7a8398ce-e3b5-6906-5520-9017ee7c2c0b--7a8398ce-e3b5-6906-5520-9017ee7c2c0b.material}
+        sortingOrder: 12
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 14e34b84-8fc7-de09-6a1e-cff697fd9a0a--Character12.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Character13
+    guid: {a: 5039010767137499682, b: 3362424766521905841}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 21}
+      - __class: MeshRenderer
+        name: mesh12_renderer
+        guid: {a: 5036034866858435666, b: 1360861138844310708}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: aaa7943d-f51e-6f64-f21a-f3a6176037ed--aaa7943d-f51e-6f64-f21a-f3a6176037ed.material}
+        sortingOrder: 13
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 14e34b84-8fc7-de09-6a1e-cff697fd9a0a--Character13.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Character14
+    guid: {a: 4939197375634500249, b: 10728533165527724418}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 22}
+      - __class: MeshRenderer
+        name: mesh13_renderer
+        guid: {a: 5464286712777406188, b: 17246891285348060844}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 6a32fba4-6430-5684-afbf-f77c51526a4f--6a32fba4-6430-5684-afbf-f77c51526a4f.material}
+        sortingOrder: 14
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 14e34b84-8fc7-de09-6a1e-cff697fd9a0a--Character14.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Character15
+    guid: {a: 4786894195113623531, b: 17570609720808943772}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 23}
+      - __class: MeshRenderer
+        name: mesh14_renderer
+        guid: {a: 5467576684190065273, b: 11031395857876800922}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: e421cccb-faa8-52a7-9735-0144edd40ee9--e421cccb-faa8-52a7-9735-0144edd40ee9.material}
+        sortingOrder: 15
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 14e34b84-8fc7-de09-6a1e-cff697fd9a0a--Character15.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Character16
+    guid: {a: 5389160590408028539, b: 10412396703588557503}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 24}
+      - __class: MeshRenderer
+        name: mesh15_renderer
+        guid: {a: 4991643539083646180, b: 18344785242985540774}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: c2ed609e-4b10-0d91-4a61-4cd7c1fcd071--c2ed609e-4b10-0d91-4a61-4cd7c1fcd071.material}
+        sortingOrder: 16
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 14e34b84-8fc7-de09-6a1e-cff697fd9a0a--Character16.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Character17
+    guid: {a: 4618232727007290418, b: 16312868008594512318}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 25}
+      - __class: MeshRenderer
+        name: mesh16_renderer
+        guid: {a: 4981252940129740638, b: 13457406373375489158}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: eca5d8bd-1b7c-598c-5593-e5049b7eb5ba--eca5d8bd-1b7c-598c-5593-e5049b7eb5ba.material}
+        sortingOrder: 17
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 14e34b84-8fc7-de09-6a1e-cff697fd9a0a--Character17.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Character18
+    guid: {a: 5119510529784476822, b: 10262397995256648345}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 26}
+      - __class: MeshRenderer
+        name: mesh17_renderer
+        guid: {a: 5316201081235973513, b: 9560548450588048295}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: 53533b69-fa53-ded2-5d55-89df9bde0b5b--53533b69-fa53-ded2-5d55-89df9bde0b5b.material}
+        sortingOrder: 18
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 14e34b84-8fc7-de09-6a1e-cff697fd9a0a--Character18.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Character19
+    guid: {a: 5177687674784055332, b: 13207995391929577906}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 27}
+      - __class: MeshRenderer
+        name: mesh18_renderer
+        guid: {a: 5206665963750833295, b: 796430127346626211}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: c8371cd7-51d4-3ff4-09dd-7431336f487e--c8371cd7-51d4-3ff4-09dd-7431336f487e.material}
+        sortingOrder: 19
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: 14e34b84-8fc7-de09-6a1e-cff697fd9a0a--Character19.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Empty
+    guid: {a: 4651983088142909647, b: 6743390254735243399}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 28}
+    layer: 0
+visible: true
+config:
+  __class: Map
+msaa:
+  __class: MSAAMode
+  value: _4X
+jsScriptSystems:
+  - js/GraphSystem.js
+  - js/EditorInjectSystem.js
+  - js/Main.js
+  - js/JSAssetSystem.js
+enableMultiTouch: false
+enableLightMultiPass: false
+pixelLightCount: 4
+resourceRendererType:
+  __class: RendererType
+  value: "Null"
+--- !Transform &2
+name: ""
+guid: {a: 1029434961439008335, b: 6372224128272086966}
+enabled: true
+localPosition: {x: 0, y: 0, z: 40}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 3}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &3
+name: ""
+guid: {a: 4980135995495867323, b: 11168592717088285586}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+children:
+  - {localId: 2}
+  - {localId: 4}
+  - {localId: 5}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &4
+name: ""
+guid: {a: 10827949423485651365, b: 543587625606924957}
+enabled: true
+localPosition: {x: 0.03, y: 0.25, z: 0.3}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 0.9230002, x: -0.3823192, y: 0.04029913, z: 0.01669259}
+parent: {localId: 3}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &5
+name: ""
+guid: {a: 6649728830845122681, b: 12730707836961908112}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 3}
+children:
+  - {localId: 6}
+  - {localId: 7}
+  - {localId: 66}
+  - {localId: 69}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &6
+name: ""
+guid: {a: 2397088207002529551, b: 4794164705482479534}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 5}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &7
+name: ""
+guid: {a: 5336791536190196232, b: 9415901860624942520}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 5}
+children:
+  - {localId: 8}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &8
+name: SkeletonAndRenderRoot
+guid: {a: 4868617407246206334, b: 18003536559722015883}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 300.0862, y: 300.0862, z: 300.0862}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 7}
+children:
+  - {localId: 9}
+  - {localId: 10}
+  - {localId: 11}
+  - {localId: 12}
+  - {localId: 13}
+  - {localId: 14}
+  - {localId: 15}
+  - {localId: 16}
+  - {localId: 17}
+  - {localId: 18}
+  - {localId: 19}
+  - {localId: 20}
+  - {localId: 21}
+  - {localId: 22}
+  - {localId: 23}
+  - {localId: 24}
+  - {localId: 25}
+  - {localId: 26}
+  - {localId: 27}
+  - {localId: 28}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &9
+name: Character1
+guid: {a: 5645628605500586989, b: 14130967765814191757}
+enabled: true
+localPosition: {x: 2.485183, y: 2.080618, z: 5.485477}
+localScale: {x: 0.9617248, y: 0.9617251, z: 0.9617249}
+localOrientation: {w: -0.9594303, x: 0.01873935, y: -0.2812566, z: -0.006091042}
+parent: {localId: 8}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &10
+name: Character2
+guid: {a: 5219385726221270590, b: 17191844671539558039}
+enabled: true
+localPosition: {x: 2.485183, y: 2.080619, z: 5.485477}
+localScale: {x: 0.9617248, y: 0.9617251, z: 0.9617249}
+localOrientation: {w: -0.9594303, x: 0.01873935, y: -0.2812566, z: -0.006091042}
+parent: {localId: 8}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &11
+name: Character3
+guid: {a: 4623809292584904907, b: 12708421057541663157}
+enabled: true
+localPosition: {x: 2.485183, y: 2.080619, z: 5.485477}
+localScale: {x: 0.9617248, y: 0.9617251, z: 0.9617249}
+localOrientation: {w: -0.9594303, x: 0.01873935, y: -0.2812566, z: -0.006091042}
+parent: {localId: 8}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &12
+name: Character4
+guid: {a: 5578189155199144036, b: 7999237503932653225}
+enabled: true
+localPosition: {x: 2.485183, y: 2.080619, z: 5.485477}
+localScale: {x: 0.9617248, y: 0.9617251, z: 0.9617249}
+localOrientation: {w: -0.9594303, x: 0.01873935, y: -0.2812566, z: -0.006091042}
+parent: {localId: 8}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &13
+name: Character5
+guid: {a: 5688752674048653349, b: 3083873923763029908}
+enabled: true
+localPosition: {x: 2.485183, y: 2.080619, z: 5.485477}
+localScale: {x: 0.9617248, y: 0.9617251, z: 0.9617249}
+localOrientation: {w: -0.9594303, x: 0.01873935, y: -0.2812566, z: -0.006091042}
+parent: {localId: 8}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &14
+name: Character6
+guid: {a: 5272346331103075313, b: 12237877443018484880}
+enabled: true
+localPosition: {x: 2.485183, y: 2.080619, z: 5.485477}
+localScale: {x: 0.9617248, y: 0.9617251, z: 0.9617249}
+localOrientation: {w: -0.9594303, x: 0.01873935, y: -0.2812566, z: -0.006091042}
+parent: {localId: 8}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &15
+name: Character7
+guid: {a: 5728259567502538914, b: 3729713348674804628}
+enabled: true
+localPosition: {x: 2.485183, y: 2.080619, z: 5.485477}
+localScale: {x: 0.9617248, y: 0.9617251, z: 0.9617249}
+localOrientation: {w: -0.9594303, x: 0.01873935, y: -0.2812566, z: -0.006091042}
+parent: {localId: 8}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &16
+name: Character8
+guid: {a: 4981201782829438562, b: 6486029356337465271}
+enabled: true
+localPosition: {x: 2.485183, y: 2.080619, z: 5.485477}
+localScale: {x: 0.9617248, y: 0.9617251, z: 0.9617249}
+localOrientation: {w: -0.9594303, x: 0.01873935, y: -0.2812566, z: -0.006091042}
+parent: {localId: 8}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &17
+name: Character9
+guid: {a: 5338054764873374247, b: 759345050185432507}
+enabled: true
+localPosition: {x: 2.485183, y: 2.080619, z: 5.485477}
+localScale: {x: 0.9617248, y: 0.9617251, z: 0.9617249}
+localOrientation: {w: -0.9594303, x: 0.01873935, y: -0.2812566, z: -0.006091042}
+parent: {localId: 8}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &18
+name: Character10
+guid: {a: 4860090025974645975, b: 1739805548965110419}
+enabled: true
+localPosition: {x: 2.485183, y: 2.080619, z: 5.485477}
+localScale: {x: 0.9617248, y: 0.9617251, z: 0.9617249}
+localOrientation: {w: -0.9594303, x: 0.01873935, y: -0.2812566, z: -0.006091042}
+parent: {localId: 8}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &19
+name: Character11
+guid: {a: 5061227902110367905, b: 8373336820220586926}
+enabled: true
+localPosition: {x: 2.485183, y: 2.080619, z: 5.485477}
+localScale: {x: 0.9617248, y: 0.9617251, z: 0.9617249}
+localOrientation: {w: -0.9594303, x: 0.01873935, y: -0.2812566, z: -0.006091042}
+parent: {localId: 8}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &20
+name: Character12
+guid: {a: 4901686579796173579, b: 570624405730558630}
+enabled: true
+localPosition: {x: 2.485183, y: 2.080619, z: 5.485477}
+localScale: {x: 0.9617248, y: 0.9617251, z: 0.9617249}
+localOrientation: {w: -0.9594303, x: 0.01873935, y: -0.2812566, z: -0.006091042}
+parent: {localId: 8}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &21
+name: Character13
+guid: {a: 4921474313923694134, b: 11094263709537625269}
+enabled: true
+localPosition: {x: 2.485183, y: 2.080619, z: 5.485477}
+localScale: {x: 0.9617248, y: 0.9617251, z: 0.9617249}
+localOrientation: {w: -0.9594303, x: 0.01873935, y: -0.2812566, z: -0.006091042}
+parent: {localId: 8}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &22
+name: Character14
+guid: {a: 4949642597525018197, b: 1867782959402505391}
+enabled: true
+localPosition: {x: 2.485183, y: 2.080619, z: 5.485477}
+localScale: {x: 0.9617248, y: 0.9617251, z: 0.9617249}
+localOrientation: {w: -0.9594303, x: 0.01873935, y: -0.2812566, z: -0.006091042}
+parent: {localId: 8}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &23
+name: Character15
+guid: {a: 4903711910087114972, b: 11481191259470563974}
+enabled: true
+localPosition: {x: 2.485183, y: 2.080619, z: 5.485477}
+localScale: {x: 0.9617248, y: 0.9617251, z: 0.9617249}
+localOrientation: {w: -0.9594303, x: 0.01873935, y: -0.2812566, z: -0.006091042}
+parent: {localId: 8}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &24
+name: Character16
+guid: {a: 5169387614449985784, b: 16149110534565734588}
+enabled: true
+localPosition: {x: 2.485183, y: 2.080619, z: 5.485477}
+localScale: {x: 0.9617248, y: 0.9617251, z: 0.9617249}
+localOrientation: {w: -0.9594303, x: 0.01873935, y: -0.2812566, z: -0.006091042}
+parent: {localId: 8}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &25
+name: Character17
+guid: {a: 5488589825981502268, b: 17008742038737147009}
+enabled: true
+localPosition: {x: 2.485183, y: 2.080619, z: 5.485477}
+localScale: {x: 0.9617248, y: 0.9617251, z: 0.9617249}
+localOrientation: {w: -0.9594303, x: 0.01873935, y: -0.2812566, z: -0.006091042}
+parent: {localId: 8}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &26
+name: Character18
+guid: {a: 5564657410497867778, b: 6802451869840788901}
+enabled: true
+localPosition: {x: 2.485183, y: 2.080619, z: 5.485477}
+localScale: {x: 0.9617248, y: 0.9617251, z: 0.9617249}
+localOrientation: {w: -0.9594303, x: 0.01873935, y: -0.2812566, z: -0.006091042}
+parent: {localId: 8}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &27
+name: Character19
+guid: {a: 4774727775926235828, b: 7293775554674496171}
+enabled: true
+localPosition: {x: 2.485183, y: 2.080619, z: 5.485477}
+localScale: {x: 0.9617248, y: 0.9617251, z: 0.9617249}
+localOrientation: {w: -0.9594303, x: 0.01873935, y: -0.2812566, z: -0.006091042}
+parent: {localId: 8}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &28
+name: Empty
+guid: {a: 4713633607573749393, b: 6731899047002674321}
+enabled: true
+localPosition: {x: 0.1679173, y: 3.484249, z: 6.540847}
+localScale: {x: 100, y: 100.0612, z: 100.0279}
+localOrientation: {w: -0.7071069, x: 0.7071066, y: 1e-15, z: 1e-15}
+parent: {localId: 8}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &66
+name: ""
+guid: {a: 4899996185279809130, b: 418418051133388436}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 5}
+children:
+  - {localId: 67}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &67
+name: SkeletonAndRenderRoot
+guid: {a: 5421158013841814718, b: 10298063536251509908}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 66}
+children:
+  - {localId: 68}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &68
+name: Occlusion plane
+guid: {a: 4928290718726808552, b: 6928916741596763027}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 100, y: 100, z: 100}
+localOrientation: {w: -0.7071069, x: 0.7071066, y: 0, z: 0}
+parent: {localId: 67}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &69
+name: ""
+guid: {a: 7729559270975696005, b: 4519125794898244758}
+enabled: true
+localPosition: {x: -0.2744195, y: 6.258837, z: 4.745733}
+localScale: {x: 4.381253, y: 4.381253, z: 4.381253}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 5}
+children:
+  - {localId: 70}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &70
+name: RootNode
+guid: {a: 10900883575335472841, b: 2888196429836327578}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 69}
+children:
+  - {localId: 71}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &71
+name: ROOT
+guid: {a: 16592488342705209788, b: 13591596184534212231}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 70}
+children:
+  - {localId: 72}
+  - {localId: 76}
+  - {localId: 77}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &72
+name: Frame
+guid: {a: 5712872754097662328, b: 5111394061228072577}
+enabled: true
+localPosition: {x: 0.06337351, y: 0.5194175, z: 0.08766389}
+localScale: {x: 1.239267, y: 1.239267, z: 1.239267}
+localOrientation: {w: 0.7071067, x: 0, y: 0, z: 0.7071068}
+parent: {localId: 71}
+children:
+  - {localId: 73}
+  - {localId: 74}
+  - {localId: 75}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &73
+name: Frame
+guid: {a: 10395264852214124808, b: 11329638981251621308}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 72}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &74
+name: Frame
+guid: {a: 2110846325582138172, b: 14707197564363328702}
+enabled: true
+localPosition: {x: -0.001085758, y: -0.0278892, z: -0.00913173}
+localScale: {x: 1.238406, y: 1.238406, z: 1.238406}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 72}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &75
+name: Frame
+guid: {a: 309064996994218558, b: 1066079773547396535}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 72}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &76
+name: Glass Panel
+guid: {a: 15945862540274319709, b: 8210484436517536424}
+enabled: true
+localPosition: {x: 0, y: 0, z: -0.01697594}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 71}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &77
+name: Cylinder
+guid: {a: 10038480428824170424, b: 9693842701414511544}
+enabled: true
+localPosition: {x: -0.01473624, y: 0.3882878, z: -2.551243}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 71}
+children:
+  - {localId: 78}
+  - {localId: 79}
+  - {localId: 80}
+  - {localId: 81}
+  - {localId: 82}
+  - {localId: 83}
+  - {localId: 84}
+  - {localId: 85}
+  - {localId: 86}
+  - {localId: 87}
+  - {localId: 88}
+  - {localId: 89}
+  - {localId: 90}
+  - {localId: 91}
+  - {localId: 92}
+  - {localId: 93}
+  - {localId: 94}
+  - {localId: 95}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &78
+name: Cylinder
+guid: {a: 9317307244639369058, b: 3304041126919455914}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 77}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &79
+name: Cylinder
+guid: {a: 13277291723349393898, b: 2326377533498073014}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 77}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &80
+name: Cylinder
+guid: {a: 7515299573691120377, b: 9148565235381102472}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 77}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &81
+name: Cylinder
+guid: {a: 15584710227359923589, b: 11983972960799858104}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 77}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &82
+name: Cylinder
+guid: {a: 10971215220710380727, b: 16073364870983438782}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 77}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &83
+name: Cylinder
+guid: {a: 4630914493585255015, b: 1706089132574671752}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 77}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &84
+name: Cylinder
+guid: {a: 380853049273244174, b: 146666198444955023}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 77}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &85
+name: Cylinder
+guid: {a: 886693682998801134, b: 15813031772660921773}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 77}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &86
+name: Cylinder
+guid: {a: 17818244136221800296, b: 9921972722857410720}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 77}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &87
+name: Cylinder
+guid: {a: 19724480103653578, b: 10212339026637080205}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 77}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &88
+name: Cylinder
+guid: {a: 13782600954051664789, b: 12846449066474943371}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 77}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &89
+name: Cylinder
+guid: {a: 11119188598112730704, b: 8745490133467466125}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 77}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &90
+name: Cylinder
+guid: {a: 9966427565829325568, b: 922207069136107439}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 77}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &91
+name: Cylinder
+guid: {a: 7155057601377889463, b: 10279835776256922547}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 77}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &92
+name: Cylinder
+guid: {a: 16161262151214601784, b: 2579899513238685872}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 77}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &93
+name: Cylinder
+guid: {a: 4345534231930876128, b: 2268186175762820483}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 77}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &94
+name: Cylinder
+guid: {a: 18394875189697807273, b: 2565527018640386964}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 77}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &95
+name: Cylinder
+guid: {a: 6434528108992794400, b: 7876921163130939573}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 0.9999999, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 77}
+mobility:
+  __class: Mobility
+  value: Dynamic

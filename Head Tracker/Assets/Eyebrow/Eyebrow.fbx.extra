@@ -1,0 +1,27 @@
+[
+  {
+    "guid": {
+      "a": "db369833-e6a5-dd6f-86d2-a08e918c27a8",
+      "b": ""
+    },
+    "extraType": "ResItemFbxAsset",
+    "name": "Eyebrow",
+    "expandInPanel": true,
+    "objGuid": "",
+    "rttiType": "Model",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "importAnimation": true,
+    "importVertexColor": false,
+    "importBlendshape": true,
+    "materialsGUIDs": [
+      "aa541e51-1f12-2afc-336a-e8d055b35594",
+      "12db70cb-c5d3-a8dc-6e83-88a101c446d4"
+    ],
+    "meshGUIDs": [
+      "ea73d01c-3219-b14e-fae7-0b846457e063"
+    ],
+    "animazGUIDs": []
+  }
+]

@@ -1,0 +1,27 @@
+[
+  {
+    "guid": {
+      "a": "8faf332c-fb9d-1cf9-d4f4-e0c6ef48cb0f",
+      "b": ""
+    },
+    "extraType": "ResItemPNGImage",
+    "name": "SCALED JOFF BUSKER",
+    "expandInPanel": true,
+    "objGuid": "",
+    "rttiType": "Texture2D",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "compressionType": 0,
+    "quality": 0,
+    "maxResolution": 512,
+    "enableMipmap": false,
+    "filterMin": 1,
+    "filterMag": 1,
+    "filterMipmap": 0,
+    "wrapModeS": 0,
+    "wrapModeT": 0,
+    "wrapModeR": 0,
+    "premultiplyAlpha": false
+  }
+]

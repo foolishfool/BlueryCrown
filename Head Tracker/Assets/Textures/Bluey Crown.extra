@@ -1,0 +1,15 @@
+[
+  {
+    "guid": {
+      "a": "eaecff4b-1777-8695-22cc-2d4960ee7953",
+      "b": ""
+    },
+    "extraType": "ResItemFolder",
+    "name": "Bluey Crown",
+    "expandInPanel": true,
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "objGuid": ""
+  }
+]

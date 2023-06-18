@@ -1,0 +1,47 @@
+%YAML 1.1
+--- !TextureCube &1
+name: ""
+guid: {a: 11551162867761999945, b: 6359630631951762606}
+width: 0
+height: 0
+depth: 0
+internalFormat:
+  __class: InternalFormat
+  value: RGBA8
+dataType:
+  __class: DataType
+  value: U8norm
+builtinType:
+  __class: BuiltInTextureType
+  value: NORAML
+enableMipmap: false
+filterMin:
+  __class: FilterMode
+  value: LINEAR
+filterMag:
+  __class: FilterMode
+  value: LINEAR
+filterMipmap:
+  __class: FilterMipmapMode
+  value: NONE
+wrapModeS:
+  __class: WrapMode
+  value: CLAMP
+wrapModeT:
+  __class: WrapMode
+  value: CLAMP
+wrapModeR:
+  __class: WrapMode
+  value: CLAMP
+maxAnisotropy: 1
+imageProvider:
+  __class: CubeImageProvider
+  name: ""
+  guid: {a: 10686779890778582257, b: 11872555102507641746}
+  imagesUri:
+    - Library/Artifact/00000000-0000-0000-0000-000000000113/00000000-0000-0000-0000-000000000113.texture.right.png
+    - Library/Artifact/00000000-0000-0000-0000-000000000113/00000000-0000-0000-0000-000000000113.texture.left.png
+    - Library/Artifact/00000000-0000-0000-0000-000000000113/00000000-0000-0000-0000-000000000113.texture.top.png
+    - Library/Artifact/00000000-0000-0000-0000-000000000113/00000000-0000-0000-0000-000000000113.texture.bottom.png
+    - Library/Artifact/00000000-0000-0000-0000-000000000113/00000000-0000-0000-0000-000000000113.texture.front.png
+    - Library/Artifact/00000000-0000-0000-0000-000000000113/00000000-0000-0000-0000-000000000113.texture.back.png

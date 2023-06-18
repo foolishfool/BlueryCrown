@@ -1,0 +1,27 @@
+[
+  {
+    "guid": {
+      "a": "6862462a-79b8-c22d-1c5e-328208ce831a",
+      "b": ""
+    },
+    "extraType": "ResItemPNGImage",
+    "name": "Judo",
+    "expandInPanel": true,
+    "objGuid": "",
+    "rttiType": "Texture2D",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "compressionType": 0,
+    "quality": 0,
+    "maxResolution": 512,
+    "enableMipmap": false,
+    "filterMin": 1,
+    "filterMag": 1,
+    "filterMipmap": 0,
+    "wrapModeS": 0,
+    "wrapModeT": 0,
+    "wrapModeR": 0,
+    "premultiplyAlpha": false
+  }
+]

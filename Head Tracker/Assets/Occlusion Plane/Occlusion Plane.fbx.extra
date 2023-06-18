@@ -1,0 +1,26 @@
+[
+  {
+    "guid": {
+      "a": "427fa5b7-21c9-e5a4-73cb-71d39798602e",
+      "b": ""
+    },
+    "extraType": "ResItemFbxAsset",
+    "name": "Occlusion Plane",
+    "expandInPanel": true,
+    "objGuid": "",
+    "rttiType": "Model",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "importAnimation": true,
+    "importVertexColor": false,
+    "importBlendshape": true,
+    "materialsGUIDs": [
+      "81881ba5-ca79-a988-e3c7-8f37884b5110"
+    ],
+    "meshGUIDs": [
+      "88198f8b-71fb-5ca7-316d-1e3df1b57976"
+    ],
+    "animazGUIDs": []
+  }
+]
