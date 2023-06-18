@@ -6,7 +6,7 @@
     },
     "extraType": "JSAssetAnimSequence",
     "name": "A",
-    "expandInPanel": false,
+    "expandInPanel": true,
     "objGuid": "",
     "rttiType": "Texture2D",
     "version": "0.1.0",

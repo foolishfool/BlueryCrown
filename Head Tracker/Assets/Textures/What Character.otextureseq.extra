@@ -6,7 +6,7 @@
     },
     "extraType": "ResItemTextureSequence",
     "name": "What Character",
-    "expandInPanel": false,
+    "expandInPanel": true,
     "objGuid": "",
     "rttiType": "TextureSequence",
     "version": "0.1.0",

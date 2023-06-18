@@ -1064,7 +1064,7 @@ entities:
         guid: {a: 5126479320899055271, b: 92850810044557735}
         enabled: true
         sharedMaterials:
-          - {localId: 1, path: 8deeab55-0a62-cb0f-68a6-7bfdf872453f--8deeab55-0a62-cb0f-68a6-7bfdf872453f.material}
+          - {localId: 1, path: 0f65c316-d2dd-d6c8-df98-4a17dd19fcea--0f65c316-d2dd-d6c8-df98-4a17dd19fcea.material}
         sortingOrder: 0
         autoSortingOrder: false
         useFrustumCulling: true
@@ -1075,6 +1075,90 @@ entities:
         entirePingPong: false
         mesh: {localId: 1, path: 00000000-0000-0000-0000-000000000002}
         castShadow: false
+    layer: 0
+  - __class: Entity
+    name: 2D Camera
+    guid: {a: 5377296426455620606, b: 746901233281783174}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 83}
+      - __class: Camera
+        name: ""
+        guid: {a: 4959132391688474831, b: 5623218542230185900}
+        enabled: true
+        layerVisibleMask: {__class: DynamicBitset, numBits: 64, values: [1, 0]}
+        renderOrder: 0
+        type:
+          __class: CameraType
+          value: ORTHO
+        clearColor: {r: 0, g: 0, b: 0, a: 1}
+        clearType:
+          __class: CameraClearType
+          value: DEPTH
+        alwaysClear: true
+        viewport: {x: 0, y: 0, w: 1, h: 1}
+        fovy: 60
+        orthoScale: 20
+        zNear: 0.1000000014901161
+        zFar: 1000
+        renderTexture: {localId: 1, path: 00000000-0000-0000-0000-000000000009}
+        isRootCamera: false
+    layer: 0
+  - __class: Entity
+    name: 2D Foreground Effects
+    guid: {a: 5301072143419779002, b: 4334278761309278873}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 84}
+      - __class: EffectNode
+        name: ""
+        guid: {a: 5447224014950710087, b: 2682577990590763671}
+        enabled: true
+        outputTextures:
+          - {localId: 1, path: 00000000-0000-0000-0000-000000000009}
+        renderOrder: 9001
+        minorOrder: 0
+        type:
+          __class: EffectNodeTag
+          value: Other
+        version: 2
+        rendererType:
+          __class: RendererType
+          value: OpenGLES30
+    layer: 0
+  - __class: Entity
+    name: Screen Image
+    guid: {a: 5011145903303015233, b: 3550606106634750891}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 85}
+      - __class: ImageRenderer
+        name: ""
+        guid: {a: 5628388958108602143, b: 4379788049535264641}
+        enabled: true
+        sharedMaterials:
+          - {localId: 0}
+        sortingOrder: 35
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        texture: {localId: 1, path: ac61d543-93de-9114-9387-1c248e0ff028--ac61d543-93de-9114-9387-1c248e0ff028.png}
+        opacity: 1
+        color: {r: 1, g: 1, b: 1, a: 1}
+        size: {x: 10, y: 10}
+        pivot: {x: 0.5, y: 0.5}
+        flipX: false
+        flipY: false
+        stretchMode:
+          __class: ImageStretchMode
+          value: Fit
     layer: 0
 visible: true
 config:
@@ -1098,7 +1182,7 @@ name: ""
 guid: {a: 5292488270810554303, b: 4915910301471360187}
 enabled: true
 localPosition: {x: 0, y: 7.116659, z: -5.571314}
-localScale: {x: 1.605839, y: 1.605839, z: 1.605839}
+localScale: {x: 0, y: 0, z: 0}
 localOrientation: {w: 1, x: 0, y: 0, z: 0}
 parent: {localId: 3}
 children:
@@ -1608,7 +1692,7 @@ name: ""
 guid: {a: 5529002677955825831, b: 17508028933160656258}
 enabled: true
 localPosition: {x: 0, y: 27.83038, z: -3.21328}
-localScale: {x: 3.149641, y: 3.149641, z: 3.149641}
+localScale: {x: 0, y: 0, z: 0}
 localOrientation: {w: 1, x: 0, y: 0, z: 0}
 parent: {localId: 3}
 mobility:
@@ -1619,9 +1703,50 @@ name: ""
 guid: {a: 5403705945451756911, b: 12689578466468492222}
 enabled: true
 localPosition: {x: 0, y: 27.83038, z: -3.21328}
-localScale: {x: 3.149641, y: 3.149641, z: 3.149641}
+localScale: {x: 0, y: 0, z: 0}
 localOrientation: {w: 1, x: 0, y: 0, z: 0}
 parent: {localId: 3}
 mobility:
   __class: Mobility
   value: Dynamic
+--- !Transform &83
+name: ""
+guid: {a: 5060592156045495677, b: 17929424065014071687}
+enabled: true
+localPosition: {x: 0, y: 0, z: 40}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 84}
+children:
+  - {localId: 85}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &84
+name: ""
+guid: {a: 4758670264312679657, b: 16674747862333045914}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+children:
+  - {localId: 83}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !ScreenTransform &85
+name: ""
+guid: {a: 4771231226644985438, b: 6230333413441071795}
+enabled: true
+localPosition: {x: 0, y: -13.21321, z: -40}
+localScale: {x: 0.4, y: 0.43, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 83}
+mobility:
+  __class: Mobility
+  value: Dynamic
+anchoredPosition: {x: 0, y: -422.8228}
+sizeDelta: {x: 720, y: 1280}
+pivot: {x: 0.5, y: 0.5}
+anchors: {x: 0.5, y: 0.5, z: 0.5, w: 0.5}
+pixelsPerUnit: 32

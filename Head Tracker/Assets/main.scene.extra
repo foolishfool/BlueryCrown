@@ -11,7 +11,7 @@
     "version": "0.1.0",
     "isVisibleInInspector": true,
     "hideInPanel": false,
-    "expanded": false,
+    "expanded": true,
     "type": "fbx_root",
     "createdEffectNodeKey": ""
   },
@@ -2255,5 +2255,156 @@
     "expanded": true,
     "editable": true,
     "visualization": false
+  },
+  {
+    "guid": {
+      "a": "95d6e7e5-b9f5-525a-6b8e-0513586f2caa",
+      "b": ""
+    },
+    "objGuid": "Guid(5377296426455620606, 746901233281783174)",
+    "extraType": "Entity",
+    "name": "2D Camera",
+    "rttiType": "Entity",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "expanded": true,
+    "type": "none",
+    "createdEffectNodeKey": "effect_node_2D_foreground"
+  },
+  {
+    "guid": {
+      "a": "df80eb85-c749-3863-7575-f56e5ec317ad",
+      "b": ""
+    },
+    "objGuid": "Guid(5060592156045495677, 17929424065014071687)",
+    "extraType": "Transform",
+    "name": "Transform",
+    "rttiType": "Transform",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "expanded": true,
+    "editable": true,
+    "eulerAngle": [
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "guid": {
+      "a": "d9acfb15-95f5-9ed9-a66c-d59354b4cc7c",
+      "b": ""
+    },
+    "objGuid": "Guid(4758670264312679657, 16674747862333045914)",
+    "extraType": "Transform",
+    "name": "Transform",
+    "rttiType": "Transform",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "expanded": true,
+    "editable": true,
+    "eulerAngle": [
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "guid": {
+      "a": "95ba5e25-a536-6d20-ca7d-10ba076c28d3",
+      "b": ""
+    },
+    "objGuid": "Guid(4771231226644985438, 6230333413441071795)",
+    "extraType": "ScreenTransform",
+    "name": "Screen Transform",
+    "rttiType": "ScreenTransform",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "expanded": true,
+    "editable": true
+  },
+  {
+    "guid": {
+      "a": "1c994fb3-ab3c-df92-7feb-8df9ea43280d",
+      "b": ""
+    },
+    "objGuid": "Guid(4959132391688474831, 5623218542230185900)",
+    "extraType": "Camera",
+    "name": "Camera",
+    "rttiType": "Camera",
+    "version": "0.2.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "expanded": true,
+    "editable": true
+  },
+  {
+    "guid": {
+      "a": "c544eed9-150b-95db-792a-2c57274bbf40",
+      "b": ""
+    },
+    "objGuid": "Guid(5301072143419779002, 4334278761309278873)",
+    "extraType": "Entity",
+    "name": "2D Foreground Effects",
+    "rttiType": "Entity",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "expanded": true,
+    "type": "none",
+    "createdEffectNodeKey": ""
+  },
+  {
+    "guid": {
+      "a": "b10cbbd2-0fdf-de31-c118-d7194af073e9",
+      "b": ""
+    },
+    "objGuid": "Guid(5447224014950710087, 2682577990590763671)",
+    "extraType": "EffectNode",
+    "name": "EffectNode",
+    "rttiType": "EffectNode",
+    "version": "0.1.0",
+    "isVisibleInInspector": false,
+    "hideInPanel": false,
+    "expanded": true,
+    "editable": true,
+    "type": 6
+  },
+  {
+    "guid": {
+      "a": "9a721b5b-0efd-6570-cda8-1a2317c24e1f",
+      "b": ""
+    },
+    "objGuid": "Guid(5011145903303015233, 3550606106634750891)",
+    "extraType": "Entity",
+    "name": "Screen Image",
+    "rttiType": "Entity",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "expanded": true,
+    "type": "none",
+    "createdEffectNodeKey": "effect_node_2D_foreground"
+  },
+  {
+    "guid": {
+      "a": "0c86d5a1-b977-c361-2117-d7fbb0c73484",
+      "b": ""
+    },
+    "objGuid": "Guid(5628388958108602143, 4379788049535264641)",
+    "extraType": "Image",
+    "name": "Image",
+    "rttiType": "ImageRenderer",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "expanded": true,
+    "editable": true,
+    "alphaNOPM": true,
+    "blendMode": "Normal"
   }
 ]
