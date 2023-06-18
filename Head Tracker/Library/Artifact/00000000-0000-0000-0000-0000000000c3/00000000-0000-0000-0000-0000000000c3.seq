@@ -1,7 +1,7 @@
 %YAML 1.1
 --- !TextureSequence &1
 name: Default TexSeq
-guid: {a: 5042202353276791275, b: 16159938194894734215}
+guid: {a: 5394719411256099917, b: 11868830879287382190}
 assettype:
   __class: TexSeqAssetType
   value: image

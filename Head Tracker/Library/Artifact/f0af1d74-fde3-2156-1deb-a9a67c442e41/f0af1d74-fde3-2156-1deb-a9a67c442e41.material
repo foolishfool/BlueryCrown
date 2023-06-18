@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Crown
-guid: {a: 5530596968503960250, b: 5468094015337018012}
+guid: {a: 5755694388142016220, b: 17115900958948983459}
 xshader: {localId: 1, path: f0af1d74-fde3-2156-1deb-a9a67c442e41--f0af1d74-fde3-2156-1deb-a9a67c442e41.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 5632533697854630632, b: 5532962118080084104}
+  guid: {a: 5288212718012301597, b: 14333889838582706853}
   floatmap:
     __class: Map
     _Cutoff: 0.6499999761581421

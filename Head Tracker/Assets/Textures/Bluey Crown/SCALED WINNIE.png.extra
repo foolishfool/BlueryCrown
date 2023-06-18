@@ -13,7 +13,7 @@
     "isVisibleInInspector": true,
     "hideInPanel": false,
     "compressionType": 1,
-    "quality": 0,
+    "quality": 2,
     "maxResolution": 512,
     "enableMipmap": false,
     "filterMin": 1,

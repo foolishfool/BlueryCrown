@@ -12,7 +12,7 @@
     "version": "0.1.0",
     "isVisibleInInspector": true,
     "hideInPanel": false,
-    "compressionType": 0,
+    "compressionType": 1,
     "quality": 0,
     "maxResolution": 512,
     "enableMipmap": false,

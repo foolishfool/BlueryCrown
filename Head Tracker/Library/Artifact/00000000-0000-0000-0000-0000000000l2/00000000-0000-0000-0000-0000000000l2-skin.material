@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: PluginLiquifyMaterial
-guid: {a: 4635341186081217836, b: 7428535270640498566}
+guid: {a: 4653855883844385150, b: 17204302727797526948}
 xshader: {localId: 1, path: 00000000-0000-0000-0000-0000000000l2--00000000-0000-0000-0000-0000000000l2.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 5655231224242819481, b: 17381731101788085687}
+  guid: {a: 5562692562057563497, b: 16343165426728901537}
   floatmap:
     __class: Map
   vec4map:

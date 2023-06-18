@@ -12,7 +12,7 @@
     "version": "0.1.0",
     "isVisibleInInspector": true,
     "hideInPanel": false,
-    "skinObjGuid": "Guid(4678162706693677164, 11420396152984178348)",
+    "skinObjGuid": "Guid(5026266079700898855, 12298571915752361133)",
     "references": [
       {
         "propertyName": "_AlbedoTexture",

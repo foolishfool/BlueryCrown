@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Character 18
-guid: {a: 4820620132345995909, b: 16745279290740005513}
+guid: {a: 5463389370397435746, b: 9079249764393191053}
 xshader: {localId: 1, path: 85e130c1-cb6b-5327-28ae-f579ad4284c5--85e130c1-cb6b-5327-28ae-f579ad4284c5.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 5574480475743124354, b: 18283887965981770939}
+  guid: {a: 5203725812883679277, b: 5078145917753020553}
   floatmap:
     __class: Map
     _Cutoff: 0.1000000014901161
@@ -37,7 +37,7 @@ properties:
     __class: Map
   texmap:
     __class: Map
-    _AlbedoTexture: {localId: 1, path: 639c50ca-16c5-0de7-c8d5-cce804e1fde9--639c50ca-16c5-0de7-c8d5-cce804e1fde9.png}
+    _AlbedoTexture: {localId: 1, path: 0d7fbb93-b0bc-8236-d110-0cb4d1aaaf3d--0d7fbb93-b0bc-8236-d110-0cb4d1aaaf3d.png}
     _EmissiveTexture: {localId: 1, path: 00000000-0000-0000-0000-00000000001c--00000000-0000-0000-0000-00000000001c.png}
     _EnvTex: {localId: 1, path: 00000000-0000-0000-0000-000000000020--00000000-0000-0000-0000-000000000020.png}
     _FresnelTex: {localId: 1, path: 00000000-0000-0000-0000-00000000001c--00000000-0000-0000-0000-00000000001c.png}

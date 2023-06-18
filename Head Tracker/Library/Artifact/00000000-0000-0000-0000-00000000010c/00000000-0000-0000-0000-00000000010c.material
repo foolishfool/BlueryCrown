@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: asset_HDRBakeDiffuse
-guid: {a: 5051836327057898894, b: 14330613504615584684}
+guid: {a: 5007071444130248479, b: 10307804183714474174}
 xshader: {localId: 1, path: 00000000-0000-0000-0000-00000000010c--00000000-0000-0000-0000-00000000010c.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 5098306516812723220, b: 2244137237110922167}
+  guid: {a: 5705388890693018776, b: 11779815831768844425}
   floatmap:
     __class: Map
   vec4map:

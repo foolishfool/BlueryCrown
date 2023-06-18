@@ -13,7 +13,7 @@
     "isVisibleInInspector": true,
     "hideInPanel": false,
     "compressionType": 1,
-    "quality": 2,
-    "maxResolution": 128
+    "quality": 0,
+    "maxResolution": 256
   }
 ]

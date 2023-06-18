@@ -12,8 +12,12 @@
     "version": "0.1.0",
     "isVisibleInInspector": true,
     "hideInPanel": false,
-    "skinObjGuid": "Guid(5157287293224494155, 14106292117023672)",
+    "skinObjGuid": "Guid(4898138662672027548, 7712694288586037144)",
     "references": [
+      {
+        "propertyName": "_AlbedoTexture",
+        "guid": "9b166797-d8fb-b58d-f8bc-0e9cac3a65d8"
+      },
       {
         "propertyName": "_OpacityTexture",
         "guid": "00000000-0000-0000-0000-000000000021"
@@ -41,10 +45,6 @@
       {
         "propertyName": "_EnvTex",
         "guid": "00000000-0000-0000-0000-000000000020"
-      },
-      {
-        "propertyName": "_AlbedoTexture",
-        "guid": "9b166797-d8fb-b58d-f8bc-0e9cac3a65d8"
       }
     ]
   }

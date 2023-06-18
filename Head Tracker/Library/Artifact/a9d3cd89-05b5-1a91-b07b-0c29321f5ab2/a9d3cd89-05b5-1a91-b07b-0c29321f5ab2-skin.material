@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: ABC Logo
-guid: {a: 4994498148222002229, b: 12352850428072995773}
+guid: {a: 5691193096571354470, b: 4481540349954311074}
 xshader: {localId: 1, path: a9d3cd89-05b5-1a91-b07b-0c29321f5ab2--a9d3cd89-05b5-1a91-b07b-0c29321f5ab2.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 5392331192053386559, b: 1116980448642734774}
+  guid: {a: 5245300688032498052, b: 5925711193896591524}
   floatmap:
     __class: Map
     _Cutoff: 0
