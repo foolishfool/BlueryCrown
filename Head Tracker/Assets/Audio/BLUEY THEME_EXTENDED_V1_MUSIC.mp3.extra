@@ -1,0 +1,17 @@
+[
+  {
+    "guid": {
+      "a": "530e5d0a-c634-85d0-2d2d-5e0ce4621969",
+      "b": ""
+    },
+    "extraType": "ResItemMP3",
+    "name": "BLUEY THEME_EXTENDED_V1_MUSIC",
+    "expandInPanel": false,
+    "objGuid": "",
+    "rttiType": "AudioClip",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "mccState": "SUCCESS"
+  }
+]

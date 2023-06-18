@@ -6,7 +6,7 @@
     },
     "extraType": "ResItemFbxAsset",
     "name": "Crown",
-    "expandInPanel": true,
+    "expandInPanel": false,
     "objGuid": "",
     "rttiType": "Model",
     "version": "0.1.0",

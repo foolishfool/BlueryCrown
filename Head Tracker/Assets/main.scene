@@ -28,7 +28,7 @@ entities:
           - {localId: 1, path: 1c93ffd9-abfd-d4a0-0f7a-142bb657737c--Animaz-1_Scene.animaz}
         runningWrapModes:
           __class: Map
-          Animaz-1_Scene: 0
+          Animaz-1_Scene: 1
         cullingMode:
           __class: AnimatorCullingMode
           value: CULL_UPDATE_PROPERTY
@@ -1160,6 +1160,110 @@ entities:
           __class: ImageStretchMode
           value: Fit
     layer: 0
+  - __class: Entity
+    name: Eyebrow
+    guid: {a: 4998440791505352480, b: 13910435123893398419}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 86}
+    layer: 0
+  - __class: Entity
+    name: SkeletonAndRenderRoot
+    guid: {a: 5530869920922633481, b: 6516681868888498362}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 87}
+    layer: 0
+  - __class: Entity
+    name: Left Eyebrow.001
+    guid: {a: 4856337817520304313, b: 11453985856261952664}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 88}
+      - __class: MeshRenderer
+        name: mesh0_renderer
+        guid: {a: 4641627990053964093, b: 14300762407432938153}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: f0af1d74-fde3-2156-1deb-a9a67c442e41--f0af1d74-fde3-2156-1deb-a9a67c442e41.material}
+          - {localId: 1, path: fd84a14d-4bc9-d8ea-6e17-8a68486a21d2--fd84a14d-4bc9-d8ea-6e17-8a68486a21d2.material}
+        sortingOrder: 1
+        autoSortingOrder: true
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: db369833-e6a5-dd6f-86d2-a08e918c27a8--Left Eyebrow.001.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Eyebrow _left
+    guid: {a: 5438743832691955582, b: 608123643900672146}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 89}
+    layer: 0
+  - __class: Entity
+    name: SkeletonAndRenderRoot
+    guid: {a: 5238115539531542024, b: 14773304017320792210}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 90}
+    layer: 0
+  - __class: Entity
+    name: Left Eyebrow.001
+    guid: {a: 5199540775721550985, b: 975855174195840404}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 91}
+      - __class: MeshRenderer
+        name: mesh0_renderer
+        guid: {a: 5133856240348329877, b: 3559912942390385036}
+        enabled: true
+        sharedMaterials:
+          - {localId: 1, path: f0af1d74-fde3-2156-1deb-a9a67c442e41--f0af1d74-fde3-2156-1deb-a9a67c442e41.material}
+          - {localId: 1, path: fd84a14d-4bc9-d8ea-6e17-8a68486a21d2--fd84a14d-4bc9-d8ea-6e17-8a68486a21d2.material}
+        sortingOrder: 0
+        autoSortingOrder: false
+        useFrustumCulling: true
+        receiveShadow: true
+        lightProbeBlendMode:
+          __class: LightProbeBlendMode
+          value: OFF
+        entirePingPong: false
+        mesh: {localId: 1, path: db369833-e6a5-dd6f-86d2-a08e918c27a8--Left Eyebrow.001.mesh}
+        castShadow: false
+    layer: 0
+  - __class: Entity
+    name: Audio Player
+    guid: {a: 4858371984909631220, b: 1894067481320158371}
+    scene: {localId: 1}
+    selfvisible: true
+    components:
+      - {localId: 92}
+      - __class: JSScriptComponent
+        name: AudioComponent
+        guid: {a: 5511747299678605482, b: 16430770545103448204}
+        enabled: true
+        path: js/AudioComponent.js
+        properties:
+          __class: Map
+          autoPlay: false
+          duration: 25155
+          loopAmount: 1
+          mute: false
+          playMode: Loop
+          resPath: audio/530e5d0a-c634-85d0-2d2d-5e0ce4621969.mp3
+          volume: 100
+    layer: 0
 visible: true
 config:
   __class: Map
@@ -1181,8 +1285,8 @@ resourceRendererType:
 name: ""
 guid: {a: 5292488270810554303, b: 4915910301471360187}
 enabled: true
-localPosition: {x: 0, y: 7.116659, z: -5.571314}
-localScale: {x: 0, y: 0, z: 0}
+localPosition: {x: 0, y: 4.576144, z: -5.571314}
+localScale: {x: 1.624, y: 1.624193, z: 1.624193}
 localOrientation: {w: 1, x: 0, y: 0, z: 0}
 parent: {localId: 3}
 children:
@@ -1201,6 +1305,8 @@ parent: {localId: 4}
 children:
   - {localId: 44}
   - {localId: 82}
+  - {localId: 86}
+  - {localId: 89}
   - {localId: 2}
 mobility:
   __class: Mobility
@@ -1229,6 +1335,7 @@ children:
   - {localId: 6}
   - {localId: 4}
   - {localId: 7}
+  - {localId: 92}
 mobility:
   __class: Mobility
   value: Dynamic
@@ -1750,3 +1857,88 @@ sizeDelta: {x: 720, y: 1280}
 pivot: {x: 0.5, y: 0.5}
 anchors: {x: 0.5, y: 0.5, z: 0.5, w: 0.5}
 pixelsPerUnit: 32
+--- !Transform &86
+name: ""
+guid: {a: 5158790838158445647, b: 7967632604224103060}
+enabled: true
+localPosition: {x: 3.783184, y: 3.615904, z: 4.007246}
+localScale: {x: 0.4530202, y: 0.4530202, z: 0.4530202}
+localOrientation: {w: 0.6967917, x: 0.1203377, y: 0.1203378, z: 0.6967919}
+parent: {localId: 3}
+children:
+  - {localId: 87}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &87
+name: SkeletonAndRenderRoot
+guid: {a: 5557610171377893132, b: 1135098545115964087}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 2.984908, y: 2.984908, z: 2.984908}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 86}
+children:
+  - {localId: 88}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &88
+name: Left Eyebrow.001
+guid: {a: 4880793411337560441, b: 16113521151783179195}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 100, y: 100, z: 100}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 87}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &89
+name: ""
+guid: {a: 4975142231806415100, b: 14907232700243014060}
+enabled: true
+localPosition: {x: -3.380581, y: 3.619068, z: 4.025806}
+localScale: {x: 0.4530202, y: 0.4530202, z: 0.4530202}
+localOrientation: {w: 0.6773826, x: -0.12235, y: -0.1369987, z: 0.7123305}
+parent: {localId: 3}
+children:
+  - {localId: 90}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &90
+name: SkeletonAndRenderRoot
+guid: {a: 4742315760401253003, b: 18260747651232600974}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 2.984908, y: 2.984908, z: 2.984908}
+localOrientation: {w: 1, x: 0, y: 0, z: 5.254625e-15}
+parent: {localId: 89}
+children:
+  - {localId: 91}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &91
+name: Left Eyebrow.001
+guid: {a: 5242844988906670012, b: 8202303481172246183}
+enabled: true
+localPosition: {x: 2.384186e-07, y: 0, z: 0}
+localScale: {x: 100, y: 100, z: 100}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 90}
+mobility:
+  __class: Mobility
+  value: Dynamic
+--- !Transform &92
+name: ""
+guid: {a: 4871573488329606532, b: 3996979345365938613}
+enabled: true
+localPosition: {x: 0, y: 0, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+parent: {localId: 5}
+mobility:
+  __class: Mobility
+  value: Dynamic
