@@ -1,0 +1,51 @@
+[
+  {
+    "guid": {
+      "a": "fa0655a9-13ff-7b42-7c6e-3c146eb7d3ab",
+      "b": ""
+    },
+    "extraType": "ResItemMaterialOmtl",
+    "name": "Character 2",
+    "expandInPanel": true,
+    "objGuid": "",
+    "rttiType": "Material",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "skinObjGuid": "Guid(5121002951299757280, 15908213921656434092)",
+    "references": [
+      {
+        "propertyName": "_AlbedoTexture",
+        "guid": "da783bd1-145f-c4a8-3c41-ca6a2cae3223"
+      },
+      {
+        "propertyName": "_OpacityTexture",
+        "guid": "00000000-0000-0000-0000-000000000021"
+      },
+      {
+        "propertyName": "_NormalTexture",
+        "guid": "00000000-0000-0000-0000-00000000001f"
+      },
+      {
+        "propertyName": "_MRATex",
+        "guid": "00000000-0000-0000-0000-00000000001c"
+      },
+      {
+        "propertyName": "_EmissiveTexture",
+        "guid": "00000000-0000-0000-0000-00000000001c"
+      },
+      {
+        "propertyName": "_FresnelTex",
+        "guid": "00000000-0000-0000-0000-00000000001c"
+      },
+      {
+        "propertyName": "_ThinTex",
+        "guid": "00000000-0000-0000-0000-00000000001c"
+      },
+      {
+        "propertyName": "_EnvTex",
+        "guid": "00000000-0000-0000-0000-000000000020"
+      }
+    ]
+  }
+]

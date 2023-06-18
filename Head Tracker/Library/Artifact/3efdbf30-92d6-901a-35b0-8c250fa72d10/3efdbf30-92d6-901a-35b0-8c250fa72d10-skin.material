@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Hacks
-guid: {a: 8019295083863708320, b: 5185064264668401296}
+guid: {a: 5737536632025809958, b: 14793602351631332002}
 xshader: {localId: 1, path: 3efdbf30-92d6-901a-35b0-8c250fa72d10--3efdbf30-92d6-901a-35b0-8c250fa72d10.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 1531484242232310522, b: 17557465777799315373}
+  guid: {a: 5542509341971689045, b: 16148709013370960007}
   floatmap:
     __class: Map
     _AmbientIntensity: 1

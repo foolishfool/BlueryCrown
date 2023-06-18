@@ -1,15 +1,15 @@
 %YAML 1.1
 --- !Material &1
 name: Crown
-guid: {a: 17387362512516614483, b: 17980342778169070501}
+guid: {a: 4815018264274485050, b: 4175059581140781227}
 xshader: {localId: 1, path: aa541e51-1f12-2afc-336a-e8d055b35594--aa541e51-1f12-2afc-336a-e8d055b35594.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 2397998788348368397, b: 6758855532243159980}
+  guid: {a: 5066806216580675447, b: 15847586273313515439}
   floatmap:
     __class: Map
-    _Cutoff: 0
+    _Cutoff: 0.6499999761581421
     _EmissiveIntensity: 1
     _Env: 1
     _EnvRot: 0
@@ -37,7 +37,7 @@ properties:
     __class: Map
   texmap:
     __class: Map
-    _AlbedoTexture: {localId: 1, path: 00000000-0000-0000-0000-000000000021--00000000-0000-0000-0000-000000000021.png}
+    _AlbedoTexture: {localId: 1, path: 1b0b045e-b4ff-60fe-be4d-d6519ab6fb1b--1b0b045e-b4ff-60fe-be4d-d6519ab6fb1b.png}
     _EmissiveTexture: {localId: 1, path: 00000000-0000-0000-0000-00000000001c--00000000-0000-0000-0000-00000000001c.png}
     _EnvTex: {localId: 1, path: 00000000-0000-0000-0000-000000000020--00000000-0000-0000-0000-000000000020.png}
     _FresnelTex: {localId: 1, path: 00000000-0000-0000-0000-00000000001c--00000000-0000-0000-0000-00000000001c.png}

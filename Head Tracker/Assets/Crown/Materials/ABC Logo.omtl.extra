@@ -1,0 +1,51 @@
+[
+  {
+    "guid": {
+      "a": "a9d3cd89-05b5-1a91-b07b-0c29321f5ab2",
+      "b": ""
+    },
+    "extraType": "ResItemMaterialOmtl",
+    "name": "ABC Logo",
+    "expandInPanel": true,
+    "objGuid": "",
+    "rttiType": "Material",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "skinObjGuid": "Guid(4994498148222002229, 12352850428072995773)",
+    "references": [
+      {
+        "propertyName": "_AlbedoTexture",
+        "guid": "b4cedbf2-d3b2-39ab-c0cb-0956c9d9d2f8"
+      },
+      {
+        "propertyName": "_OpacityTexture",
+        "guid": "00000000-0000-0000-0000-000000000021"
+      },
+      {
+        "propertyName": "_NormalTexture",
+        "guid": "00000000-0000-0000-0000-00000000001f"
+      },
+      {
+        "propertyName": "_MRATex",
+        "guid": "00000000-0000-0000-0000-00000000001c"
+      },
+      {
+        "propertyName": "_EmissiveTexture",
+        "guid": "00000000-0000-0000-0000-00000000001c"
+      },
+      {
+        "propertyName": "_FresnelTex",
+        "guid": "00000000-0000-0000-0000-00000000001c"
+      },
+      {
+        "propertyName": "_ThinTex",
+        "guid": "00000000-0000-0000-0000-00000000001c"
+      },
+      {
+        "propertyName": "_EnvTex",
+        "guid": "00000000-0000-0000-0000-000000000020"
+      }
+    ]
+  }
+]

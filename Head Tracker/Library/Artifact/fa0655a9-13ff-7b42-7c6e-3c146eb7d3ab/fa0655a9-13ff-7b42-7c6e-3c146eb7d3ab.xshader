@@ -1,0 +1,271 @@
+%YAML 1.1
+--- !XShader &1
+name: ""
+guid: {a: 5558615311102515659, b: 10270349150784328874}
+renderQueue: 2000
+passes:
+  - __class: Pass
+    name: ""
+    guid: {a: 5496661142658302858, b: 13975635268492140679}
+    shaders:
+      __class: Map
+    angleBinaryPrograms:
+      __class: Map
+    semantics:
+      __class: Map
+      attBinormal:
+        __class: VertexAttribType
+        value: BINORMAL
+      attBoneIds:
+        __class: VertexAttribType
+        value: INDICES
+      attColor:
+        __class: VertexAttribType
+        value: COLOR
+      attNormal:
+        __class: VertexAttribType
+        value: NORMAL
+      attPosition:
+        __class: VertexAttribType
+        value: POSITION
+      attTangent:
+        __class: VertexAttribType
+        value: TANGENT
+      attTexcoord0:
+        __class: VertexAttribType
+        value: TEXCOORD0
+      attTexcoord1:
+        __class: VertexAttribType
+        value: TEXCOORD1
+      attTexcoord2:
+        __class: VertexAttribType
+        value: TEXCOORD2
+      attTexcoord3:
+        __class: VertexAttribType
+        value: TEXCOORD3
+      attTexcoord3D0:
+        __class: VertexAttribType
+        value: TEXCOORD3D0
+      attTexcoord4:
+        __class: VertexAttribType
+        value: TEXCOORD4
+      attTexcoord5:
+        __class: VertexAttribType
+        value: TEXCOORD5
+      attTexcoord6:
+        __class: VertexAttribType
+        value: TEXCOORD6
+      attTexcoord7:
+        __class: VertexAttribType
+        value: TEXCOORD7
+      attWeights:
+        __class: VertexAttribType
+        value: WEIGHT
+    clearColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    clearDepth: 1
+    clearType:
+      __class: CameraClearType
+      value: DONT
+    renderState:
+      __class: RenderState
+      name: ""
+      guid: {a: 5751853747988155459, b: 9836683447461699994}
+      rasterization:
+        __class: RasterizationState
+        name: ""
+        guid: {a: 5112943760286093901, b: 2788335296627143096}
+        depthClampEnable: false
+        depthClampEnableName: ""
+        rasterizerDiscardEnable: false
+        rasterizerDiscardEnableName: ""
+        polygonMode:
+          __class: PolygonMode
+          value: FILL
+        polygonModeName: ""
+        cullMode:
+          __class: CullFace
+          value: BACK
+        cullModeName: ""
+        frontFace:
+          __class: FrontFace
+          value: COUNTER_CLOCKWISE
+        frontFaceName: ""
+        depthBiasEnable: false
+        depthBiasEnableName: ""
+        depthBiasConstantFactor: 0
+        depthBiasConstantFactorName: ""
+        depthBiasClamp: 1
+        depthBiasClampName: ""
+        depthBiasSlopeFactor: 1
+        depthBiasSlopeFactorName: ""
+        lineWidth: 1
+        lineWidthName: ""
+      depthstencil:
+        __class: DepthStencilState
+        name: ""
+        guid: {a: 5257918264848301000, b: 5092612135696207787}
+        depthTestEnable: true
+        depthTestEnableName: ""
+        depthCompareOp:
+          __class: CompareOp
+          value: LESS_OR_EQUAL
+        depthCompareOpName: ""
+        depthWriteEnable: true
+        stencilTestEnable: false
+        stencilTestEnableName: ""
+      colorBlend:
+        __class: ColorBlendState
+        name: ""
+        guid: {a: 4683583443295300430, b: 13981316522473935503}
+        blendConstants: {x: 0, y: 0, z: 0, w: 0}
+        blendEnableName: ""
+        blendFactorName: ""
+        blendOpName: ""
+        attachments:
+          - __class: ColorBlendAttachmentState
+            name: ""
+            guid: {a: 4967731191201642566, b: 15057709109049169553}
+            blendEnable: false
+            srcColorBlendFactor:
+              __class: BlendFactor
+              value: ONE
+            dstColorBlendFactor:
+              __class: BlendFactor
+              value: ZERO
+            srcAlphaBlendFactor:
+              __class: BlendFactor
+              value: ONE
+            dstAlphaBlendFactor:
+              __class: BlendFactor
+              value: ZERO
+            colorWriteMask: 15
+            ColorBlendOp:
+              __class: BlendOp
+              value: ADD
+            AlphaBlendOp:
+              __class: BlendOp
+              value: ADD
+    useFBOTexture: false
+    useCameraRT: false
+    useFBOFetch: false
+    enableFBOFetch: false
+    isFullScreenShading: false
+    macrosMap:
+      __class: Map
+    preprocess: false
+    passType:
+      __class: PassType
+      value: NORMAL
+    keywordProgram: {localId: 2}
+    lightMode:
+      __class: LightMode
+      value: NONE
+    clearMoment:
+      __class: PassClearMoment
+      value: CLEAR_BEFORE_RENDERING
+--- !KeywordProgramProfile &2
+name: a1
+guid: {a: 5047036421579040580, b: 11168231770217512086}
+keywordSets:
+  -
+    - ""
+    - AE_AMAZING_USE_BONES
+  -
+    - ""
+targetApis:
+  -
+    - glsl30
+    - glsl31
+    - glsl32
+  -
+    - metal
+  -
+    - hlsl50
+  -
+    - vulkan
+stagets:
+  - __class: ShaderType
+    value: FRAGMENT
+  - __class: ShaderType
+    value: VERTEX
+shaderSnippets:
+  - __class: ShaderSnippet
+    name: ""
+    guid: {a: 4697845261451466915, b: 4636917182205496194}
+    source: ""
+    location: Library/ShaderData/fa0655a9-13ff-7b42-7c6e-3c146eb7d3ab_0/shaderGLES/daafeb0f5403135565da2f0b1205305e.frag
+  - __class: ShaderSnippet
+    name: ""
+    guid: {a: 5027936984803558500, b: 12903978085063123608}
+    source: ""
+    location: Library/ShaderData/fa0655a9-13ff-7b42-7c6e-3c146eb7d3ab_0/shaderGLES/f6b6dfb8a5768ba3d18c52c1ddfab413.frag
+  - __class: ShaderSnippet
+    name: ""
+    guid: {a: 5588671200155780334, b: 12179384136720888496}
+    source: ""
+    location: Library/ShaderData/fa0655a9-13ff-7b42-7c6e-3c146eb7d3ab_0/shaderGLES/daafeb0f5403135565da2f0b1205305e.vert
+  - __class: ShaderSnippet
+    name: ""
+    guid: {a: 5689720637401749732, b: 4464263812692935068}
+    source: ""
+    location: Library/ShaderData/fa0655a9-13ff-7b42-7c6e-3c146eb7d3ab_0/shaderGLES/f6b6dfb8a5768ba3d18c52c1ddfab413.vert
+  - __class: ShaderSnippet
+    name: ""
+    guid: {a: 5441570940753913656, b: 13281454004013197470}
+    source: ""
+    location: Library/ShaderData/fa0655a9-13ff-7b42-7c6e-3c146eb7d3ab_0/shaderMetal/daafeb0f5403135565da2f0b1205305e.frag
+  - __class: ShaderSnippet
+    name: ""
+    guid: {a: 5657599435003380437, b: 17742816741769225130}
+    source: ""
+    location: Library/ShaderData/fa0655a9-13ff-7b42-7c6e-3c146eb7d3ab_0/shaderMetal/f6b6dfb8a5768ba3d18c52c1ddfab413.frag
+  - __class: ShaderSnippet
+    name: ""
+    guid: {a: 4961982513013730684, b: 9173859147583185311}
+    source: ""
+    location: Library/ShaderData/fa0655a9-13ff-7b42-7c6e-3c146eb7d3ab_0/shaderMetal/daafeb0f5403135565da2f0b1205305e.vert
+  - __class: ShaderSnippet
+    name: ""
+    guid: {a: 4759856506831613605, b: 12278545805658332297}
+    source: ""
+    location: Library/ShaderData/fa0655a9-13ff-7b42-7c6e-3c146eb7d3ab_0/shaderMetal/f6b6dfb8a5768ba3d18c52c1ddfab413.vert
+  - __class: ShaderSnippet
+    name: ""
+    guid: {a: 5443823895469109024, b: 398798318319806344}
+    source: ""
+    location: Library/ShaderData/fa0655a9-13ff-7b42-7c6e-3c146eb7d3ab_0/shaderHLSL5/daafeb0f5403135565da2f0b1205305e.frag
+  - __class: ShaderSnippet
+    name: ""
+    guid: {a: 5161892538146358541, b: 9245918507907226552}
+    source: ""
+    location: Library/ShaderData/fa0655a9-13ff-7b42-7c6e-3c146eb7d3ab_0/shaderHLSL5/f6b6dfb8a5768ba3d18c52c1ddfab413.frag
+  - __class: ShaderSnippet
+    name: ""
+    guid: {a: 4627046123360105504, b: 9111347424968793521}
+    source: ""
+    location: Library/ShaderData/fa0655a9-13ff-7b42-7c6e-3c146eb7d3ab_0/shaderHLSL5/daafeb0f5403135565da2f0b1205305e.vert
+  - __class: ShaderSnippet
+    name: ""
+    guid: {a: 5147155733590660871, b: 981497050482255232}
+    source: ""
+    location: Library/ShaderData/fa0655a9-13ff-7b42-7c6e-3c146eb7d3ab_0/shaderHLSL5/f6b6dfb8a5768ba3d18c52c1ddfab413.vert
+  - __class: ShaderSnippet
+    name: ""
+    guid: {a: 4778214501552307262, b: 1941605336624026010}
+    source: ""
+    location: Library/ShaderData/fa0655a9-13ff-7b42-7c6e-3c146eb7d3ab_0/shaderVulkan/daafeb0f5403135565da2f0b1205305e.frag
+  - __class: ShaderSnippet
+    name: ""
+    guid: {a: 5529055015598109735, b: 3872248135093884856}
+    source: ""
+    location: Library/ShaderData/fa0655a9-13ff-7b42-7c6e-3c146eb7d3ab_0/shaderVulkan/f6b6dfb8a5768ba3d18c52c1ddfab413.frag
+  - __class: ShaderSnippet
+    name: ""
+    guid: {a: 4640302947207824637, b: 16203814873132401836}
+    source: ""
+    location: Library/ShaderData/fa0655a9-13ff-7b42-7c6e-3c146eb7d3ab_0/shaderVulkan/daafeb0f5403135565da2f0b1205305e.vert
+  - __class: ShaderSnippet
+    name: ""
+    guid: {a: 5727934581294520215, b: 8912711547196159415}
+    source: ""
+    location: Library/ShaderData/fa0655a9-13ff-7b42-7c6e-3c146eb7d3ab_0/shaderVulkan/f6b6dfb8a5768ba3d18c52c1ddfab413.vert

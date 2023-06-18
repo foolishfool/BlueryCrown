@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Supernatural
-guid: {a: 16088125098223675086, b: 11363374588438306214}
+guid: {a: 5043570368662881468, b: 11023781467991460996}
 xshader: {localId: 1, path: f315d9aa-9f86-c11b-5789-0d84be0f6237--f315d9aa-9f86-c11b-5789-0d84be0f6237.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 9387566616307012437, b: 11119019563844297915}
+  guid: {a: 5230393899031344952, b: 3309871558645197187}
   floatmap:
     __class: Map
     _AmbientIntensity: 1

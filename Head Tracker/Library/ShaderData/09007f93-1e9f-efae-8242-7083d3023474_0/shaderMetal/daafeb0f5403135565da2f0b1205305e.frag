@@ -44,6 +44,69 @@ struct spvUnsafeArray
     }
 };
 
+struct SurfaceParams
+{
+    float3 albedo;
+    float opacity;
+    float cutoff;
+    float3 emissive;
+    float2 metalParams;
+    float3 roughParams;
+    float3 clearCoatRoughParams;
+    float2 occParams;
+    float3 diffCol;
+    float3 specCol;
+    float2 anisoParams;
+    float thin;
+    float subsurface;
+    float3 subsurfaceColMultiply;
+    float3 subsurfaceCol;
+    float ior;
+    float transmittance;
+    float transmittanceColorAtDistance;
+    float clearCoat;
+    float3 pos;
+    float3 nDir;
+    float3 vnDir;
+    float3 cnDir;
+    float3 tDir;
+    float3 bDir;
+    float3 vDir;
+    float3 rDir;
+    float3 crDir;
+};
+
+struct LightParams
+{
+    float enable;
+    float3 lDir;
+    float3 color;
+    float intensity;
+    float3 attenuate;
+};
+
+struct EnvironmentParams
+{
+    float intensity;
+    float rotation;
+};
+
+struct VSOutput
+{
+    float3 posWS;
+    float3 nDirWS;
+    float3 tDirWS;
+    float3 bDirWS;
+};
+
+struct LightGroupParams
+{
+    spvUnsafeArray<LightParams, 3> DirLights;
+    spvUnsafeArray<LightParams, 2> PointLights;
+    spvUnsafeArray<LightParams, 2> SpotLights;
+    float dummy;
+};
+
 struct buffer_t
 {
     float4 u_WorldSpaceCameraPos;
@@ -70,13 +133,13 @@ struct buffer_t
     float _AmbientIntensity;
     float _AmbientRotation;
     float4 _AlbedoColor;
+    float u_Cutoff;
     float _Metallic;
     float _Roughness;
     float4 _EmissiveColor;
     float _EmissiveIntensity;
+    float4x4 u_VP;
 };
-
-constant float _6766 = {};
 
 struct main0_out
 {
@@ -85,457 +148,740 @@ struct main0_out
 
 struct main0_in
 {
-    float3 v_posWS [[user(locn0)]];
-    float3 v_nDirWS [[user(locn1)]];
-    float2 v_uv0 [[user(locn2)]];
+    float3 v_posWS;
+    float3 v_nDirWS;
+    float2 v_uv0;
+    float3 v_tDirWS;
+    float3 v_bDirWS;
 };
+
+static inline __attribute__((always_inline))
+float3 GammaToLinear(thread const float3& col)
+{
+    return float3(pow(col.x, 2.2000000476837158203125), pow(col.y, 2.2000000476837158203125), pow(col.z, 2.2000000476837158203125));
+}
+
+static inline __attribute__((always_inline))
+VSOutput BuildVSOutput(thread float3& v_posWS, thread float3& v_nDirWS, thread float3& v_tDirWS, thread float3& v_bDirWS)
+{
+    VSOutput V;
+    V.posWS = v_posWS;
+    V.nDirWS = normalize(v_nDirWS);
+    V.tDirWS = normalize(v_tDirWS);
+    V.bDirWS = normalize(v_bDirWS);
+    return V;
+}
+
+static inline __attribute__((always_inline))
+float saturate0(thread const float& x)
+{
+    return fast::clamp(x, 0.0, 1.0);
+}
+
+static inline __attribute__((always_inline))
+float Pow2(thread const float& x)
+{
+    return x * x;
+}
+
+static inline __attribute__((always_inline))
+float SpecularAO(thread const SurfaceParams& S)
+{
+    float ndv = fast::max(0.0, dot(S.nDir, S.vDir));
+    float visibility = S.occParams.x;
+    float perceptualRoughness = S.roughParams.x;
+    float param = (pow(ndv + visibility, exp2(((-16.0) * perceptualRoughness) - 1.0)) - 1.0) + visibility;
+    float lagardeAO = saturate0(param);
+    float horizon = fast::min(1.0 + dot(S.rDir, S.nDir), 1.0);
+    float horizonAO = horizon * horizon;
+    return lagardeAO * horizonAO;
+}
+
+static inline __attribute__((always_inline))
+SurfaceParams BuildSurfaceParams(thread const VSOutput& V, thread const float& envInt, thread const float& envRot, thread const float3& albedo, thread const float& opacity, thread const float& cutoff, thread const float3& normal, thread const float3& clearCoatNormal, thread const float& metallic, thread const float& roughness, thread const float& ao, thread const float& subsurface, thread const float3& subsurfaceCol, thread const float3& subsurfaceColMultiply, thread const float& ior, thread const float& transmittance, thread const float& transmittanceColorAtDistance, thread const float& thin, thread const float& clearCoat, thread const float& clearCoatRoughness, thread const float3& emissive, thread const float& anisotropic, thread const float& anisotropicRotate, thread const float& rampID, thread const float& rim, thread const float3& rimCol, thread const float3& ambient, thread const float3& matcap, thread const float& smoothFactor, constant float4& u_WorldSpaceCameraPos)
+{
+    SurfaceParams S;
+    S.albedo = albedo;
+    S.opacity = opacity;
+    float param = metallic;
+    S.metalParams.x = saturate0(param);
+    S.metalParams.y = 0.959999978542327880859375 * (1.0 - S.metalParams.x);
+    S.roughParams.x = fast::clamp(roughness, 0.07999999821186065673828125, 1.0);
+    float param_1 = S.roughParams.x;
+    S.roughParams.y = Pow2(param_1);
+    float param_2 = S.roughParams.y;
+    S.roughParams.z = Pow2(param_2);
+    float param_3 = ao;
+    S.occParams.x = saturate0(param_3);
+    float param_4 = thin;
+    S.thin = saturate0(param_4);
+    S.clearCoat = clearCoat;
+    S.emissive = emissive;
+    S.diffCol = S.albedo * S.metalParams.y;
+    S.specCol = mix(float3(0.039999999105930328369140625), S.albedo, float3(S.metalParams.x));
+    S.subsurface = subsurface;
+    S.subsurfaceColMultiply = subsurfaceColMultiply;
+    S.subsurfaceCol = subsurfaceCol;
+    S.ior = ior;
+    S.transmittance = transmittance;
+    S.transmittanceColorAtDistance = transmittanceColorAtDistance;
+    S.pos = V.posWS;
+    S.vnDir = V.nDirWS;
+    S.nDir = normal;
+    S.cnDir = clearCoatNormal;
+    S.tDir = V.tDirWS;
+    S.bDir = V.bDirWS;
+    S.vDir = normalize(u_WorldSpaceCameraPos.xyz - V.posWS);
+    float3 _1452;
+    if (dot(S.vDir, S.nDir) < 0.0)
+    {
+        _1452 = reflect(S.vDir, S.nDir);
+    }
+    else
+    {
+        _1452 = S.vDir;
+    }
+    S.vDir = _1452;
+    S.rDir = normalize(reflect(-S.vDir, S.nDir));
+    SurfaceParams param_5 = S;
+    S.occParams.y = SpecularAO(param_5);
+    return S;
+}
+
+static inline __attribute__((always_inline))
+EnvironmentParams BuildEnvironmentParams(thread const float& envInt, thread const float& envRot)
+{
+    EnvironmentParams E;
+    E.intensity = envInt;
+    E.rotation = envRot;
+    return E;
+}
+
+static inline __attribute__((always_inline))
+LightParams BuildDirLightParams(thread const SurfaceParams& S, thread const int& index, constant spvUnsafeArray<float, 3>& u_DirLightsEnabled, constant float& u_DirLightNum, constant spvUnsafeArray<float4, 3>& u_DirLightsDirection, constant spvUnsafeArray<float4, 3>& u_DirLightsColor, constant spvUnsafeArray<float, 3>& u_DirLightsIntensity)
+{
+    LightParams ML;
+    ML.enable = u_DirLightsEnabled[index] * step(float(index) + 0.5, u_DirLightNum);
+    ML.lDir = normalize(-u_DirLightsDirection[index].xyz);
+    ML.color = u_DirLightsColor[index].xyz;
+    ML.intensity = u_DirLightsIntensity[index] * ML.enable;
+    ML.attenuate = float3(1.0);
+    return ML;
+}
+
+static inline __attribute__((always_inline))
+float Pow4(thread const float& x)
+{
+    float x2 = x * x;
+    return x2 * x2;
+}
+
+static inline __attribute__((always_inline))
+LightParams BuildPointLightParams(thread const SurfaceParams& S, thread const int& index, constant spvUnsafeArray<float, 2>& u_PointLightsEnabled, constant float& u_PointLightNum, constant spvUnsafeArray<float4, 2>& u_PointLightsPosition, constant spvUnsafeArray<float4, 2>& u_PointLightsColor, constant spvUnsafeArray<float, 2>& u_PointLightsIntensity, constant spvUnsafeArray<float, 2>& u_PointLightsAttenRangeInv)
+{
+    float3 lVec = float3(0.0);
+    float lDist = 0.0;
+    LightParams PL1;
+    PL1.enable = u_PointLightsEnabled[index] * step(float(index) + 0.5, u_PointLightNum);
+    lVec = u_PointLightsPosition[index].xyz - S.pos;
+    lDist = length(lVec);
+    PL1.lDir = lVec / float3(lDist);
+    PL1.color = u_PointLightsColor[index].xyz;
+    PL1.intensity = u_PointLightsIntensity[index] * PL1.enable;
+    lDist *= u_PointLightsAttenRangeInv[index];
+    float param = lDist;
+    float param_1 = 1.0 - Pow4(param);
+    float param_2 = saturate0(param_1);
+    float param_3 = lDist;
+    float attenuate = (Pow2(param_2) * (Pow2(param_3) + 1.0)) * 0.25;
+    PL1.attenuate = float3(attenuate, attenuate, attenuate);
+    return PL1;
+}
+
+static inline __attribute__((always_inline))
+LightParams BuildSpotLightParams(thread const SurfaceParams& S, thread const int& index, constant spvUnsafeArray<float, 2>& u_SpotLightsEnabled, constant float& u_SpotLightNum, constant spvUnsafeArray<float4, 2>& u_SpotLightsPosition, constant spvUnsafeArray<float4, 2>& u_SpotLightsColor, constant spvUnsafeArray<float, 2>& u_SpotLightsIntensity, constant spvUnsafeArray<float, 2>& u_SpotLightsAttenRangeInv, constant spvUnsafeArray<float4, 2>& u_SpotLightsDirection, constant spvUnsafeArray<float, 2>& u_SpotLightsOuterAngleCos, constant spvUnsafeArray<float, 2>& u_SpotLightsInnerAngleCos)
+{
+    float3 lVec = float3(0.0);
+    float lDist = 0.0;
+    float3 spotDir = float3(0.0);
+    float angleAtten = 0.0;
+    LightParams SL1;
+    SL1.enable = u_SpotLightsEnabled[index] * step(float(index) + 0.5, u_SpotLightNum);
+    lVec = u_SpotLightsPosition[index].xyz - S.pos;
+    lDist = length(lVec);
+    SL1.lDir = lVec / float3(lDist);
+    SL1.color = u_SpotLightsColor[index].xyz;
+    SL1.intensity = u_SpotLightsIntensity[index] * SL1.enable;
+    lDist *= u_SpotLightsAttenRangeInv[index];
+    float param = lDist;
+    float param_1 = 1.0 - Pow4(param);
+    float param_2 = saturate0(param_1);
+    float param_3 = lDist;
+    float attenuate = (Pow2(param_2) * (Pow2(param_3) + 1.0)) * 0.25;
+    spotDir = normalize(-u_SpotLightsDirection[index].xyz);
+    angleAtten = fast::max(0.0, dot(SL1.lDir, spotDir));
+    attenuate *= smoothstep(u_SpotLightsOuterAngleCos[index], u_SpotLightsInnerAngleCos[index], angleAtten);
+    SL1.attenuate = float3(attenuate, attenuate, attenuate);
+    return SL1;
+}
+
+static inline __attribute__((always_inline))
+LightGroupParams BuildLightGroupParams(thread const SurfaceParams& S, constant spvUnsafeArray<float, 3>& u_DirLightsEnabled, constant float& u_DirLightNum, constant spvUnsafeArray<float4, 3>& u_DirLightsDirection, constant spvUnsafeArray<float4, 3>& u_DirLightsColor, constant spvUnsafeArray<float, 3>& u_DirLightsIntensity, constant spvUnsafeArray<float, 2>& u_PointLightsEnabled, constant float& u_PointLightNum, constant spvUnsafeArray<float4, 2>& u_PointLightsPosition, constant spvUnsafeArray<float4, 2>& u_PointLightsColor, constant spvUnsafeArray<float, 2>& u_PointLightsIntensity, constant spvUnsafeArray<float, 2>& u_PointLightsAttenRangeInv, constant spvUnsafeArray<float, 2>& u_SpotLightsEnabled, constant float& u_SpotLightNum, constant spvUnsafeArray<float4, 2>& u_SpotLightsPosition, constant spvUnsafeArray<float4, 2>& u_SpotLightsColor, constant spvUnsafeArray<float, 2>& u_SpotLightsIntensity, constant spvUnsafeArray<float, 2>& u_SpotLightsAttenRangeInv, constant spvUnsafeArray<float4, 2>& u_SpotLightsDirection, constant spvUnsafeArray<float, 2>& u_SpotLightsOuterAngleCos, constant spvUnsafeArray<float, 2>& u_SpotLightsInnerAngleCos)
+{
+    LightGroupParams LG;
+    LG.dummy = 0.0;
+    SurfaceParams param = S;
+    int param_1 = 0;
+    LG.DirLights[0] = BuildDirLightParams(param, param_1, u_DirLightsEnabled, u_DirLightNum, u_DirLightsDirection, u_DirLightsColor, u_DirLightsIntensity);
+    SurfaceParams param_2 = S;
+    int param_3 = 1;
+    LG.DirLights[1] = BuildDirLightParams(param_2, param_3, u_DirLightsEnabled, u_DirLightNum, u_DirLightsDirection, u_DirLightsColor, u_DirLightsIntensity);
+    SurfaceParams param_4 = S;
+    int param_5 = 2;
+    LG.DirLights[2] = BuildDirLightParams(param_4, param_5, u_DirLightsEnabled, u_DirLightNum, u_DirLightsDirection, u_DirLightsColor, u_DirLightsIntensity);
+    SurfaceParams param_6 = S;
+    int param_7 = 0;
+    LG.PointLights[0] = BuildPointLightParams(param_6, param_7, u_PointLightsEnabled, u_PointLightNum, u_PointLightsPosition, u_PointLightsColor, u_PointLightsIntensity, u_PointLightsAttenRangeInv);
+    SurfaceParams param_8 = S;
+    int param_9 = 1;
+    LG.PointLights[1] = BuildPointLightParams(param_8, param_9, u_PointLightsEnabled, u_PointLightNum, u_PointLightsPosition, u_PointLightsColor, u_PointLightsIntensity, u_PointLightsAttenRangeInv);
+    SurfaceParams param_10 = S;
+    int param_11 = 0;
+    LG.SpotLights[0] = BuildSpotLightParams(param_10, param_11, u_SpotLightsEnabled, u_SpotLightNum, u_SpotLightsPosition, u_SpotLightsColor, u_SpotLightsIntensity, u_SpotLightsAttenRangeInv, u_SpotLightsDirection, u_SpotLightsOuterAngleCos, u_SpotLightsInnerAngleCos);
+    SurfaceParams param_12 = S;
+    int param_13 = 1;
+    LG.SpotLights[1] = BuildSpotLightParams(param_12, param_13, u_SpotLightsEnabled, u_SpotLightNum, u_SpotLightsPosition, u_SpotLightsColor, u_SpotLightsIntensity, u_SpotLightsAttenRangeInv, u_SpotLightsDirection, u_SpotLightsOuterAngleCos, u_SpotLightsInnerAngleCos);
+    return LG;
+}
+
+static inline __attribute__((always_inline))
+float Atan2(thread const float& x, thread const float& y)
+{
+    float signx = (x < 0.0) ? (-1.0) : 1.0;
+    return signx * acos(fast::clamp(y / length(float2(x, y)), -1.0, 1.0));
+}
+
+static inline __attribute__((always_inline))
+float2 GetPanoramicTexCoordsFromDir(thread float3& dir, thread const float& rotation)
+{
+    dir = normalize(dir);
+    float param = dir.x;
+    float param_1 = -dir.z;
+    float2 uv;
+    uv.x = (Atan2(param, param_1) - 1.57079637050628662109375) / 6.283185482025146484375;
+    uv.y = acos(dir.y) / 3.1415927410125732421875;
+    uv.x += rotation;
+    uv.x = fract((uv.x + floor(uv.x)) + 1.0);
+    return uv;
+}
+
+static inline __attribute__((always_inline))
+float3 SamplerEncodedPanoramicWithUV(thread const texture2d<float> panoramic, thread const sampler panoramicSmplr, thread const float2& uv, thread const float& lod)
+{
+    float lodMin = floor(lod);
+    float lodLerp = lod - lodMin;
+    float2 uvLodMin = uv;
+    float2 uvLodMax = uv;
+    float2 size = float2(0.0);
+    if (abs(lodMin - 0.0) < 0.001000000047497451305389404296875)
+    {
+        uvLodMin.x = ((((uv.x * 511.0) / 512.0) + 0.0009765625) * 1.0) + 0.0;
+        uvLodMin.y = ((((uv.y * 255.0) / 256.0) + 0.001953125) * 0.5) + 0.0;
+        uvLodMax.x = ((((uv.x * 255.0) / 256.0) + 0.001953125) * 0.5) + 0.0;
+        uvLodMax.y = ((((uv.y * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+    }
+    else
+    {
+        if (abs(lodMin - 1.0) < 0.001000000047497451305389404296875)
+        {
+            uvLodMin.x = ((((uv.x * 255.0) / 256.0) + 0.001953125) * 0.5) + 0.0;
+            uvLodMin.y = ((((uv.y * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+            uvLodMax.x = ((((uv.x * 255.0) / 256.0) + 0.001953125) * 0.5) + 0.5;
+            uvLodMax.y = ((((uv.y * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+        }
+        else
+        {
+            if (abs(lodMin - 2.0) < 0.001000000047497451305389404296875)
+            {
+                uvLodMin.x = ((((uv.x * 255.0) / 256.0) + 0.001953125) * 0.5) + 0.5;
+                uvLodMin.y = ((((uv.y * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+                uvLodMax.x = ((((uv.x * 255.0) / 256.0) + 0.001953125) * 0.5) + 0.0;
+                uvLodMax.y = ((((uv.y * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.75;
+            }
+            else
+            {
+                if (abs(lodMin - 3.0) < 0.001000000047497451305389404296875)
+                {
+                    uvLodMin.x = ((((uv.x * 255.0) / 256.0) + 0.001953125) * 0.5) + 0.0;
+                    uvLodMin.y = ((((uv.y * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.75;
+                    uvLodMax.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+                    uvLodMax.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.75;
+                }
+                else
+                {
+                    if (abs(lodMin - 4.0) < 0.001000000047497451305389404296875)
+                    {
+                        uvLodMin.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+                        uvLodMin.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.75;
+                        uvLodMax.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.75;
+                        uvLodMax.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.75;
+                    }
+                    else
+                    {
+                        if (abs(lodMin - 5.0) < 0.001000000047497451305389404296875)
+                        {
+                            uvLodMin.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.75;
+                            uvLodMin.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.75;
+                            uvLodMax.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+                            uvLodMax.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.875;
+                        }
+                        else
+                        {
+                            if (abs(lodMin - 6.0) < 0.001000000047497451305389404296875)
+                            {
+                                uvLodMin.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+                                uvLodMin.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.875;
+                                uvLodMax.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.75;
+                                uvLodMax.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.875;
+                            }
+                            else
+                            {
+                                if (abs(lodMin - 7.0) < 0.001000000047497451305389404296875)
+                                {
+                                    uvLodMin.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.75;
+                                    uvLodMin.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.875;
+                                    uvLodMax.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.75;
+                                    uvLodMax.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.875;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    float4 envEncoded = mix(panoramic.sample(panoramicSmplr, uvLodMin), panoramic.sample(panoramicSmplr, uvLodMax), float4(lodLerp));
+    return envEncoded.xyz / float3(envEncoded.w);
+}
+
+static inline __attribute__((always_inline))
+float3 SamplerEncodedPanoramic(thread const texture2d<float> panoramic, thread const sampler panoramicSmplr, thread const float3& dir, thread const float& rotation, thread const float& lod)
+{
+    float3 param = dir;
+    float param_1 = rotation;
+    float2 _1237 = GetPanoramicTexCoordsFromDir(param, param_1);
+    float2 uv = _1237;
+    float2 param_2 = uv;
+    float param_3 = lod;
+    return SamplerEncodedPanoramicWithUV(panoramic, panoramicSmplr, param_2, param_3);
+}
+
+static inline __attribute__((always_inline))
+float3 GTAO_MultiBounce(thread const float& visibility, thread const float3& albedo)
+{
+    float3 a = (albedo * 2.040400028228759765625) - float3(0.3323999941349029541015625);
+    float3 b = (albedo * (-4.79510021209716796875)) + float3(0.6417000293731689453125);
+    float3 c = (albedo * 2.755199909210205078125) + float3(0.69029998779296875);
+    return fast::max(float3(visibility), ((((a * visibility) + b) * visibility) + c) * visibility);
+}
+
+static inline __attribute__((always_inline))
+float3 Diffuse_Panoramic(thread const SurfaceParams& S, thread const EnvironmentParams& E, thread const texture2d<float> envTex, thread const sampler envTexSmplr)
+{
+    float3 param = S.nDir;
+    float param_1 = E.rotation;
+    float param_2 = 7.0;
+    float3 lighting = SamplerEncodedPanoramic(envTex, envTexSmplr, param, param_1, param_2);
+    float param_3 = S.occParams.x;
+    float3 param_4 = S.diffCol;
+    float3 multiBounceColor = GTAO_MultiBounce(param_3, param_4);
+    return ((lighting * S.diffCol) * multiBounceColor) * E.intensity;
+}
+
+static inline __attribute__((always_inline))
+float3 EnvBRDFApprox(thread const SurfaceParams& S)
+{
+    float ndv = fast::max(0.0, dot(S.nDir, S.vDir));
+    float perceptualRoughness = S.roughParams.x;
+    float4 r = (float4(-1.0, -0.0274999998509883880615234375, -0.572000026702880859375, 0.02199999988079071044921875) * perceptualRoughness) + float4(1.0, 0.0425000004470348358154296875, 1.03999996185302734375, -0.039999999105930328369140625);
+    float a004 = (fast::min(r.x * r.x, exp2((-9.27999973297119140625) * ndv)) * r.x) + r.y;
+    float2 AB = (float2(-1.03999996185302734375, 1.03999996185302734375) * a004) + r.zw;
+    float param = 50.0 * S.specCol.y;
+    AB.y *= saturate0(param);
+    return (S.specCol * AB.x) + float3(AB.y);
+}
+
+static inline __attribute__((always_inline))
+float3 Specular_Panoramic(thread const SurfaceParams& S, thread const EnvironmentParams& E, thread const texture2d<float> envTex, thread const sampler envTexSmplr)
+{
+    float3 dir = mix(S.rDir, S.nDir, float3(S.roughParams.x * S.roughParams.y));
+    float3 param = dir;
+    float param_1 = E.rotation;
+    float param_2 = (S.roughParams.x - 0.07999999821186065673828125) * 7.0;
+    float3 specEnv = SamplerEncodedPanoramic(envTex, envTexSmplr, param, param_1, param_2);
+    SurfaceParams param_3 = S;
+    float3 brdf = EnvBRDFApprox(param_3);
+    float param_4 = S.occParams.y;
+    float3 param_5 = S.specCol;
+    float3 multiBounceColor = GTAO_MultiBounce(param_4, param_5);
+    return ((brdf * specEnv) * multiBounceColor) * E.intensity;
+}
+
+static inline __attribute__((always_inline))
+float3 Diffuse_OrenNayar(thread const SurfaceParams& S, thread const LightParams& L)
+{
+    float3 hDir = normalize(L.lDir + S.vDir);
+    float ndl = fast::max(0.0, dot(S.nDir, L.lDir));
+    float ndv = fast::max(0.0, dot(S.nDir, S.vDir));
+    float vdh = fast::max(0.0, dot(S.vDir, hDir));
+    float a = S.roughParams.y;
+    float s = a;
+    float s2 = s * s;
+    float VoL = ((2.0 * vdh) * vdh) - 1.0;
+    float Cosri = VoL - (ndv * ndl);
+    float C1 = 1.0 - ((0.5 * s2) / (s2 + 0.3300000131130218505859375));
+    float _425;
+    if (Cosri >= 0.0)
+    {
+        _425 = 1.0 / fast::max(ndl, ndv);
+    }
+    else
+    {
+        _425 = 1.0;
+    }
+    float C2 = (((0.449999988079071044921875 * s2) / (s2 + 0.0900000035762786865234375)) * Cosri) * _425;
+    float lighting = ((C1 + C2) * (1.0 + (S.roughParams.x * 0.5))) * ndl;
+    return (((S.diffCol * L.color) * L.intensity) * L.attenuate) * lighting;
+}
+
+static inline __attribute__((always_inline))
+float V_SmithJointApprox(thread const float& a, thread const float& ndv, thread const float& ndl)
+{
+    float lambdaV = ndl * ((ndv * (1.0 - a)) + a);
+    float lambdaL = ndv * ((ndl * (1.0 - a)) + a);
+    return 0.5 / ((lambdaV + lambdaL) + 9.9999997473787516355514526367188e-06);
+}
+
+static inline __attribute__((always_inline))
+float D_GGX(thread const float& ndh, thread const float& a2)
+{
+    float d = (((ndh * a2) - ndh) * ndh) + 1.0;
+    return (a2 * 0.31830990314483642578125) / ((d * d) + 1.0000000116860974230803549289703e-07);
+}
+
+static inline __attribute__((always_inline))
+float Pow5(thread const float& x)
+{
+    float x2 = x * x;
+    return (x2 * x2) * x;
+}
+
+static inline __attribute__((always_inline))
+float3 F_Schlick(thread const float3& f0, thread const float& vdh)
+{
+    float param = 1.0 - vdh;
+    float t = Pow5(param);
+    return f0 + ((float3(1.0) - f0) * t);
+}
+
+static inline __attribute__((always_inline))
+float3 Specular_GGX(thread const SurfaceParams& S, thread const LightParams& L)
+{
+    float3 hDir = normalize(L.lDir + S.vDir);
+    float ndh = fast::max(0.0, dot(S.nDir, hDir));
+    float vdh = fast::max(0.0, dot(S.vDir, hDir));
+    float ndl = fast::max(0.0, dot(S.nDir, L.lDir));
+    float ndv = fast::max(0.0, dot(S.nDir, S.vDir));
+    float a = S.roughParams.y;
+    float a2 = S.roughParams.z;
+    float param = ndl;
+    float param_1 = ndv;
+    float param_2 = a;
+    float V = V_SmithJointApprox(param, param_1, param_2);
+    float param_3 = ndh;
+    float param_4 = a2;
+    float D = D_GGX(param_3, param_4);
+    float3 param_5 = S.specCol;
+    float param_6 = vdh;
+    float3 F = F_Schlick(param_5, param_6);
+    float3 specular = ((((((F * V) * D) * 3.1415927410125732421875) * ndl) * L.color) * L.intensity) * L.attenuate;
+    return specular;
+}
+
+static inline __attribute__((always_inline))
+float3 Diffuse_Lambert(thread const SurfaceParams& S, thread const LightParams& L)
+{
+    float ndl = fast::max(0.0, dot(S.nDir, L.lDir));
+    float lighting = ndl;
+    return (((S.diffCol * L.color) * L.intensity) * L.attenuate) * lighting;
+}
+
+static inline __attribute__((always_inline))
+float V_Const()
+{
+    return 0.25;
+}
+
+static inline __attribute__((always_inline))
+float3 Specular_GGX_Low(thread const SurfaceParams& S, thread const LightParams& L)
+{
+    float3 hDir = normalize(L.lDir + S.vDir);
+    float ndh = fast::max(0.0, dot(S.nDir, hDir));
+    float vdh = fast::max(0.0, dot(S.vDir, hDir));
+    float ndl = fast::max(0.0, dot(S.nDir, L.lDir));
+    float a = S.roughParams.y;
+    float a2 = S.roughParams.z;
+    float V = V_Const();
+    float param = ndh;
+    float param_1 = a2;
+    float D = D_GGX(param, param_1);
+    float3 param_2 = S.specCol;
+    float param_3 = vdh;
+    float3 F = F_Schlick(param_2, param_3);
+    float3 specular = ((((((F * V) * D) * 3.1415927410125732421875) * ndl) * L.color) * L.intensity) * L.attenuate;
+    return specular;
+}
+
+static inline __attribute__((always_inline))
+float3 EmissiveTerm(thread const SurfaceParams& S)
+{
+    return S.emissive;
+}
+
+static inline __attribute__((always_inline))
+float3 Lighting(thread const VSOutput& V, thread const SurfaceParams& S, thread const EnvironmentParams& E, thread const texture2d<float> envTex, thread const sampler envTexSmplr, thread const LightGroupParams& LG)
+{
+    float3 Fd = float3(0.0);
+    float3 Fr = float3(0.0);
+    float coatAttenuate_IBL = 1.0;
+    SurfaceParams param = S;
+    EnvironmentParams param_1 = E;
+    Fd += (Diffuse_Panoramic(param, param_1, envTex, envTexSmplr) * coatAttenuate_IBL);
+    SurfaceParams param_2 = S;
+    EnvironmentParams param_3 = E;
+    Fr += (Specular_Panoramic(param_2, param_3, envTex, envTexSmplr) * coatAttenuate_IBL);
+    LightParams ML = LG.DirLights[0];
+    if (ML.enable > 0.5)
+    {
+        float coatAttenuate_ML = 1.0;
+        SurfaceParams param_4 = S;
+        LightParams param_5 = ML;
+        Fd += (Diffuse_OrenNayar(param_4, param_5) * coatAttenuate_ML);
+        SurfaceParams param_6 = S;
+        LightParams param_7 = ML;
+        Fr += (Specular_GGX(param_6, param_7) * coatAttenuate_ML);
+    }
+    LightParams DL = LG.DirLights[1];
+    if (DL.enable > 0.5)
+    {
+        float coatAttenuate_DL = 1.0;
+        SurfaceParams param_8 = S;
+        LightParams param_9 = DL;
+        Fd += (Diffuse_Lambert(param_8, param_9) * coatAttenuate_DL);
+        SurfaceParams param_10 = S;
+        LightParams param_11 = DL;
+        Fr += (Specular_GGX_Low(param_10, param_11) * coatAttenuate_DL);
+    }
+    DL = LG.DirLights[2];
+    if (DL.enable > 0.5)
+    {
+        float coatAttenuate_DL_1 = 1.0;
+        SurfaceParams param_12 = S;
+        LightParams param_13 = DL;
+        Fd += (Diffuse_Lambert(param_12, param_13) * coatAttenuate_DL_1);
+        SurfaceParams param_14 = S;
+        LightParams param_15 = DL;
+        Fr += (Specular_GGX_Low(param_14, param_15) * coatAttenuate_DL_1);
+    }
+    LightParams PL = LG.PointLights[0];
+    if (PL.enable > 0.5)
+    {
+        float coatAttenuate_PL = 1.0;
+        SurfaceParams param_16 = S;
+        LightParams param_17 = PL;
+        Fd += (Diffuse_Lambert(param_16, param_17) * coatAttenuate_PL);
+        SurfaceParams param_18 = S;
+        LightParams param_19 = PL;
+        Fr += (Specular_GGX_Low(param_18, param_19) * coatAttenuate_PL);
+    }
+    PL = LG.PointLights[1];
+    if (PL.enable > 0.5)
+    {
+        float coatAttenuate_PL_1 = 1.0;
+        SurfaceParams param_20 = S;
+        LightParams param_21 = PL;
+        Fd += (Diffuse_Lambert(param_20, param_21) * coatAttenuate_PL_1);
+        SurfaceParams param_22 = S;
+        LightParams param_23 = PL;
+        Fr += (Specular_GGX_Low(param_22, param_23) * coatAttenuate_PL_1);
+    }
+    LightParams SL = LG.SpotLights[0];
+    if (SL.enable > 0.5)
+    {
+        float coatAttenuate_SL = 1.0;
+        SurfaceParams param_24 = S;
+        LightParams param_25 = SL;
+        Fd += (Diffuse_Lambert(param_24, param_25) * coatAttenuate_SL);
+        SurfaceParams param_26 = S;
+        LightParams param_27 = SL;
+        Fr += (Specular_GGX_Low(param_26, param_27) * coatAttenuate_SL);
+    }
+    SL = LG.SpotLights[1];
+    if (SL.enable > 0.5)
+    {
+        float coatAttenuate_SL_1 = 1.0;
+        SurfaceParams param_28 = S;
+        LightParams param_29 = SL;
+        Fd += (Diffuse_Lambert(param_28, param_29) * coatAttenuate_SL_1);
+        SurfaceParams param_30 = S;
+        LightParams param_31 = SL;
+        Fr += (Specular_GGX_Low(param_30, param_31) * coatAttenuate_SL_1);
+    }
+    SurfaceParams param_32 = S;
+    Fd += EmissiveTerm(param_32);
+    float3 finalRGB = Fd + Fr;
+    return finalRGB;
+}
+
+static inline __attribute__((always_inline))
+float3 LinearToGamma(thread const float3& col)
+{
+    return float3(pow(col.x, 0.4545449912548065185546875), pow(col.y, 0.4545449912548065185546875), pow(col.z, 0.4545449912548065185546875));
+}
+
+static inline __attribute__((always_inline))
+float4 MainEntry(thread const texture2d<float> envTex, thread const sampler envTexSmplr, thread const float& envInt, thread const float& envRot, thread const float3& albedo, thread const float& opacity, thread const float& cutoff, thread const float3& normal, thread const float3& clearCoatNormal, thread const float& metallic, thread const float& roughness, thread const float& ao, thread const float& subsurface, thread const float3& subsurfaceCol, thread const float3& subsurfaceColMultiply, thread const float& ior, thread const float& transmittance, thread const float& transmittanceColorAtDistance, thread const float& thin, thread const float& clearCoat, thread const float& clearCoatRoughness, thread const float3& emissive, thread const float& anisotropic, thread const float& anisotropicRotate, thread const float& rampID, thread const float& rim, thread const float3& rimCol, thread const float3& ambient, thread const float3& matcap, thread const float& smoothFactor, thread float3& v_posWS, thread float3& v_nDirWS, thread float3& v_tDirWS, thread float3& v_bDirWS, constant float4& u_WorldSpaceCameraPos, constant spvUnsafeArray<float, 3>& u_DirLightsEnabled, constant float& u_DirLightNum, constant spvUnsafeArray<float4, 3>& u_DirLightsDirection, constant spvUnsafeArray<float4, 3>& u_DirLightsColor, constant spvUnsafeArray<float, 3>& u_DirLightsIntensity, constant spvUnsafeArray<float, 2>& u_PointLightsEnabled, constant float& u_PointLightNum, constant spvUnsafeArray<float4, 2>& u_PointLightsPosition, constant spvUnsafeArray<float4, 2>& u_PointLightsColor, constant spvUnsafeArray<float, 2>& u_PointLightsIntensity, constant spvUnsafeArray<float, 2>& u_PointLightsAttenRangeInv, constant spvUnsafeArray<float, 2>& u_SpotLightsEnabled, constant float& u_SpotLightNum, constant spvUnsafeArray<float4, 2>& u_SpotLightsPosition, constant spvUnsafeArray<float4, 2>& u_SpotLightsColor, constant spvUnsafeArray<float, 2>& u_SpotLightsIntensity, constant spvUnsafeArray<float, 2>& u_SpotLightsAttenRangeInv, constant spvUnsafeArray<float4, 2>& u_SpotLightsDirection, constant spvUnsafeArray<float, 2>& u_SpotLightsOuterAngleCos, constant spvUnsafeArray<float, 2>& u_SpotLightsInnerAngleCos)
+{
+    VSOutput V = BuildVSOutput(v_posWS, v_nDirWS, v_tDirWS, v_bDirWS);
+    VSOutput param = V;
+    float param_1 = envInt;
+    float param_2 = envRot;
+    float3 param_3 = albedo;
+    float param_4 = opacity;
+    float param_5 = cutoff;
+    float3 param_6 = normal;
+    float3 param_7 = clearCoatNormal;
+    float param_8 = metallic;
+    float param_9 = roughness;
+    float param_10 = ao;
+    float param_11 = subsurface;
+    float3 param_12 = subsurfaceCol;
+    float3 param_13 = subsurfaceColMultiply;
+    float param_14 = ior;
+    float param_15 = transmittance;
+    float param_16 = transmittanceColorAtDistance;
+    float param_17 = thin;
+    float param_18 = clearCoat;
+    float param_19 = clearCoatRoughness;
+    float3 param_20 = emissive;
+    float param_21 = anisotropic;
+    float param_22 = anisotropicRotate;
+    float param_23 = rampID;
+    float param_24 = rim;
+    float3 param_25 = rimCol;
+    float3 param_26 = ambient;
+    float3 param_27 = matcap;
+    float param_28 = smoothFactor;
+    SurfaceParams S = BuildSurfaceParams(param, param_1, param_2, param_3, param_4, param_5, param_6, param_7, param_8, param_9, param_10, param_11, param_12, param_13, param_14, param_15, param_16, param_17, param_18, param_19, param_20, param_21, param_22, param_23, param_24, param_25, param_26, param_27, param_28, u_WorldSpaceCameraPos);
+    float param_29 = envInt;
+    float param_30 = envRot;
+    EnvironmentParams E = BuildEnvironmentParams(param_29, param_30);
+    SurfaceParams param_31 = S;
+    LightGroupParams LG = BuildLightGroupParams(param_31, u_DirLightsEnabled, u_DirLightNum, u_DirLightsDirection, u_DirLightsColor, u_DirLightsIntensity, u_PointLightsEnabled, u_PointLightNum, u_PointLightsPosition, u_PointLightsColor, u_PointLightsIntensity, u_PointLightsAttenRangeInv, u_SpotLightsEnabled, u_SpotLightNum, u_SpotLightsPosition, u_SpotLightsColor, u_SpotLightsIntensity, u_SpotLightsAttenRangeInv, u_SpotLightsDirection, u_SpotLightsOuterAngleCos, u_SpotLightsInnerAngleCos);
+    VSOutput param_32 = V;
+    SurfaceParams param_33 = S;
+    EnvironmentParams param_34 = E;
+    LightGroupParams param_35 = LG;
+    float3 finalRGB = Lighting(param_32, param_33, param_34, envTex, envTexSmplr, param_35);
+    float3 param_36 = finalRGB;
+    finalRGB = LinearToGamma(param_36);
+    float4 result = float4(finalRGB, S.opacity);
+    return result;
+}
+
+static inline __attribute__((always_inline))
+float4 ApplyBlendMode(thread const float4& color, thread const float2& uv)
+{
+    float4 ret = color;
+    return ret;
+}
 
 fragment main0_out main0(main0_in in [[stage_in]], constant buffer_t& buffer, texture2d<float> _AlbedoTexture [[texture(0)]], texture2d<float> _EmissiveTexture [[texture(1)]], texture2d<float> _AmbientTexture [[texture(2)]], sampler _AlbedoTextureSmplr [[sampler(0)]], sampler _EmissiveTextureSmplr [[sampler(1)]], sampler _AmbientTextureSmplr [[sampler(2)]])
 {
     main0_out out = {};
-    float4 _2088 = _AlbedoTexture.sample(_AlbedoTextureSmplr, in.v_uv0);
-    float3 _2094 = float3(pow(buffer._AlbedoColor.x, 2.2000000476837158203125), pow(buffer._AlbedoColor.y, 2.2000000476837158203125), pow(buffer._AlbedoColor.z, 2.2000000476837158203125)) * float3(pow(_2088.x, 2.2000000476837158203125), pow(_2088.y, 2.2000000476837158203125), pow(_2088.z, 2.2000000476837158203125));
-    float3 _2112 = fast::normalize(in.v_nDirWS);
-    float4 _2117 = _EmissiveTexture.sample(_EmissiveTextureSmplr, in.v_uv0);
-    float _2526 = fast::clamp(buffer._Metallic, 0.0, 1.0);
-    float _2425 = fast::clamp(buffer._Roughness, 0.07999999821186065673828125, 1.0);
-    float _2531 = _2425 * _2425;
-    float _2536 = _2531 * _2531;
-    float3 _2449 = _2094 * (0.959999978542327880859375 * (1.0 - _2526));
-    float3 _2456 = mix(float3(0.039999999105930328369140625), _2094, float3(_2526));
-    float3 _2491 = fast::normalize(buffer.u_WorldSpaceCameraPos.xyz - in.v_posWS);
-    float3 _6599;
-    if (dot(_2491, _2112) < 0.0)
-    {
-        _6599 = reflect(_2491, _2112);
-    }
-    else
-    {
-        _6599 = _2491;
-    }
-    float3 _2517 = fast::normalize(reflect(-_6599, _2112));
-    float _2559 = fast::max(0.0, dot(_2112, _6599));
-    float _2582 = fast::min(1.0 + dot(_2517, _2112), 1.0);
-    float _2588 = fast::clamp(pow(_2559 + 1.0, exp2(fma(-16.0, _2425, -1.0))), 0.0, 1.0) * (_2582 * _2582);
-    float _2652 = buffer.u_DirLightsEnabled[0] * step(0.5, buffer.u_DirLightNum);
-    float3 _2659 = fast::normalize(-buffer.u_DirLightsDirection[0].xyz);
-    float _2671 = buffer.u_DirLightsIntensity[0] * _2652;
-    float _2686 = buffer.u_DirLightsEnabled[1] * step(1.5, buffer.u_DirLightNum);
-    float3 _2693 = fast::normalize(-buffer.u_DirLightsDirection[1].xyz);
-    float _2705 = buffer.u_DirLightsIntensity[1] * _2686;
-    float _2720 = buffer.u_DirLightsEnabled[2] * step(2.5, buffer.u_DirLightNum);
-    float3 _2727 = fast::normalize(-buffer.u_DirLightsDirection[2].xyz);
-    float _2739 = buffer.u_DirLightsIntensity[2] * _2720;
-    float _2761 = buffer.u_PointLightsEnabled[0] * step(0.5, buffer.u_PointLightNum);
-    float3 _2769 = buffer.u_PointLightsPosition[0].xyz - in.v_posWS;
-    float _2771 = length(_2769);
-    float3 _2775 = _2769 / float3(_2771);
-    float _2787 = buffer.u_PointLightsIntensity[0] * _2761;
-    float _2793 = _2771 * buffer.u_PointLightsAttenRangeInv[0];
-    float _2815 = _2793 * _2793;
-    float _2822 = fast::clamp(fma(-_2815, _2815, 1.0), 0.0, 1.0);
-    float3 _2807 = float3(((_2822 * _2822) * fma(_2793, _2793, 1.0)) * 0.25);
-    float _2851 = buffer.u_PointLightsEnabled[1] * step(1.5, buffer.u_PointLightNum);
-    float3 _2859 = buffer.u_PointLightsPosition[1].xyz - in.v_posWS;
-    float _2861 = length(_2859);
-    float3 _2865 = _2859 / float3(_2861);
-    float _2877 = buffer.u_PointLightsIntensity[1] * _2851;
-    float _2883 = _2861 * buffer.u_PointLightsAttenRangeInv[1];
-    float _2905 = _2883 * _2883;
-    float _2912 = fast::clamp(fma(-_2905, _2905, 1.0), 0.0, 1.0);
-    float3 _2897 = float3(((_2912 * _2912) * fma(_2883, _2883, 1.0)) * 0.25);
-    float _2943 = buffer.u_SpotLightsEnabled[0] * step(0.5, buffer.u_SpotLightNum);
-    float3 _2951 = buffer.u_SpotLightsPosition[0].xyz - in.v_posWS;
-    float _2953 = length(_2951);
-    float3 _2957 = _2951 / float3(_2953);
-    float _2969 = buffer.u_SpotLightsIntensity[0] * _2943;
-    float _2975 = _2953 * buffer.u_SpotLightsAttenRangeInv[0];
-    float _3018 = _2975 * _2975;
-    float _3025 = fast::clamp(fma(-_3018, _3018, 1.0), 0.0, 1.0);
-    float3 _3010 = float3((((_3025 * _3025) * fma(_2975, _2975, 1.0)) * 0.25) * smoothstep(buffer.u_SpotLightsOuterAngleCos[0], buffer.u_SpotLightsInnerAngleCos[0], fast::max(0.0, dot(_2957, fast::normalize(-buffer.u_SpotLightsDirection[0].xyz)))));
-    float _3056 = buffer.u_SpotLightsEnabled[1] * step(1.5, buffer.u_SpotLightNum);
-    float3 _3064 = buffer.u_SpotLightsPosition[1].xyz - in.v_posWS;
-    float _3066 = length(_3064);
-    float3 _3070 = _3064 / float3(_3066);
-    float _3082 = buffer.u_SpotLightsIntensity[1] * _3056;
-    float _3088 = _3066 * buffer.u_SpotLightsAttenRangeInv[1];
-    float _3131 = _3088 * _3088;
-    float _3138 = fast::clamp(fma(-_3131, _3131, 1.0), 0.0, 1.0);
-    float3 _3123 = float3((((_3138 * _3138) * fma(_3088, _3088, 1.0)) * 0.25) * smoothstep(buffer.u_SpotLightsOuterAngleCos[1], buffer.u_SpotLightsInnerAngleCos[1], fast::max(0.0, dot(_3070, fast::normalize(-buffer.u_SpotLightsDirection[1].xyz)))));
-    float3 _3415 = fast::normalize(_2112);
-    float _3418 = -_3415.z;
-    float _3420 = _3415.x;
-    float _3427 = acos(_3415.y);
-    float _3433 = fma(fma((_3420 < 0.0) ? (-1.0) : 1.0, acos(fast::clamp(_3418 / length(float2(_3420, _3418)), -1.0, 1.0)), -1.57079637050628662109375), 0.15915493667125701904296875, buffer._AmbientRotation);
-    float _3442 = fract((_3433 + floor(_3433)) + 1.0);
-    float2 _6358 = float2(_6766, _3427 * 0.3183098733425140380859375);
-    _6358.x = _3442;
-    float _3470 = floor(7.0);
-    float2 _6606;
-    float2 _6614;
-    if (abs(_3470) < 0.001000000047497451305389404296875)
-    {
-        _6614 = float2(fma(_3442, 0.99609375, 0.001953125) * 0.5, fma(fma(_3427, 0.315823078155517578125, 0.00390625), 0.25, 0.5));
-        _6606 = float2(fma(_3442, 0.998046875, 0.0009765625), fma(_3427, 0.3170664608478546142578125, 0.001953125) * 0.5);
-    }
-    else
-    {
-        float2 _6607;
-        float2 _6615;
-        if (abs(_3470 - 1.0) < 0.001000000047497451305389404296875)
-        {
-            float _3523 = fma(_3442, 0.99609375, 0.001953125);
-            float _3533 = fma(fma(_3427, 0.315823078155517578125, 0.00390625), 0.25, 0.5);
-            _6615 = float2(fma(_3523, 0.5, 0.5), _3533);
-            _6607 = float2(_3523 * 0.5, _3533);
-        }
-        else
-        {
-            float2 _6608;
-            float2 _6616;
-            if (abs(_3470 - 2.0) < 0.001000000047497451305389404296875)
-            {
-                float _3561 = fma(_3442, 0.99609375, 0.001953125);
-                float _3569 = fma(_3427, 0.315823078155517578125, 0.00390625);
-                _6616 = float2(_3561 * 0.5, fma(_3569, 0.25, 0.75));
-                _6608 = float2(fma(_3561, 0.5, 0.5), fma(_3569, 0.25, 0.5));
-            }
-            else
-            {
-                float2 _6609;
-                float2 _6617;
-                if (abs(_3470 - 3.0) < 0.001000000047497451305389404296875)
-                {
-                    _6617 = float2(fma(fma(_3442, 0.9921875, 0.00390625), 0.25, 0.5), fma(fma(_3427, 0.3133362829685211181640625, 0.0078125), 0.125, 0.75));
-                    _6609 = float2(fma(_3442, 0.99609375, 0.001953125) * 0.5, fma(fma(_3427, 0.315823078155517578125, 0.00390625), 0.25, 0.75));
-                }
-                else
-                {
-                    float2 _6610;
-                    float2 _6618;
-                    if (abs(_3470 - 4.0) < 0.001000000047497451305389404296875)
-                    {
-                        float _3637 = fma(_3442, 0.9921875, 0.00390625);
-                        float _3647 = fma(fma(_3427, 0.3133362829685211181640625, 0.0078125), 0.125, 0.75);
-                        _6618 = float2(fma(_3637, 0.25, 0.75), _3647);
-                        _6610 = float2(fma(_3637, 0.25, 0.5), _3647);
-                    }
-                    else
-                    {
-                        float2 _6611;
-                        float2 _6619;
-                        if (abs(_3470 - 5.0) < 0.001000000047497451305389404296875)
-                        {
-                            float _3675 = fma(_3442, 0.9921875, 0.00390625);
-                            float _3683 = fma(_3427, 0.3133362829685211181640625, 0.0078125);
-                            _6619 = float2(fma(_3675, 0.25, 0.5), fma(_3683, 0.125, 0.875));
-                            _6611 = float2(fma(_3675, 0.25, 0.75), fma(_3683, 0.125, 0.75));
-                        }
-                        else
-                        {
-                            float2 _6612;
-                            float2 _6620;
-                            if (abs(_3470 - 6.0) < 0.001000000047497451305389404296875)
-                            {
-                                float _3713 = fma(_3442, 0.9921875, 0.00390625);
-                                float _3723 = fma(fma(_3427, 0.3133362829685211181640625, 0.0078125), 0.125, 0.875);
-                                _6620 = float2(fma(_3713, 0.25, 0.75), _3723);
-                                _6612 = float2(fma(_3713, 0.25, 0.5), _3723);
-                            }
-                            else
-                            {
-                                float2 _6621;
-                                if (abs(_3470 - 7.0) < 0.001000000047497451305389404296875)
-                                {
-                                    _6621 = float2(fma(fma(_3442, 0.9921875, 0.00390625), 0.25, 0.75), fma(fma(_3427, 0.3133362829685211181640625, 0.0078125), 0.125, 0.875));
-                                }
-                                else
-                                {
-                                    _6621 = _6358;
-                                }
-                                _6620 = _6621;
-                                _6612 = _6621;
-                            }
-                            _6619 = _6620;
-                            _6611 = _6612;
-                        }
-                        _6618 = _6619;
-                        _6610 = _6611;
-                    }
-                    _6617 = _6618;
-                    _6609 = _6610;
-                }
-                _6616 = _6617;
-                _6608 = _6609;
-            }
-            _6615 = _6616;
-            _6607 = _6608;
-        }
-        _6614 = _6615;
-        _6606 = _6607;
-    }
-    float4 _3789 = _AmbientTexture.sample(_AmbientTextureSmplr, _6606);
-    float4 _3792 = _AmbientTexture.sample(_AmbientTextureSmplr, _6614);
-    float4 _3795 = mix(_3789, _3792, float4(7.0 - _3470));
-    float3 _3203 = ((((_3795.xyz / float3(_3795.w)) * _2449) * fast::max(float3(1.0), ((((((_2449 * 2.040400028228759765625) - float3(0.3323999941349029541015625)) * 1.0) + ((_2449 * (-4.79510021209716796875)) + float3(0.6417000293731689453125))) * 1.0) + ((_2449 * 2.755199909210205078125) + float3(0.69029998779296875))) * 1.0)) * buffer._AmbientIntensity) * 1.0;
-    float _3858 = _2425 - 0.07999999821186065673828125;
-    float3 _3898 = fast::normalize(mix(_2517, _2112, float3(_2425 * _2531)));
-    float _3901 = -_3898.z;
-    float _3903 = _3898.x;
-    float _3910 = acos(_3898.y);
-    float _3916 = fma(fma((_3903 < 0.0) ? (-1.0) : 1.0, acos(fast::clamp(_3901 / length(float2(_3903, _3901)), -1.0, 1.0)), -1.57079637050628662109375), 0.15915493667125701904296875, buffer._AmbientRotation);
-    float _3925 = fract((_3916 + floor(_3916)) + 1.0);
-    float2 _6473 = float2(_6766, _3910 * 0.3183098733425140380859375);
-    _6473.x = _3925;
-    float _3953 = floor(_3858 * 7.0);
-    float2 _6639;
-    float2 _6647;
-    if (abs(_3953) < 0.001000000047497451305389404296875)
-    {
-        _6647 = float2(fma(_3925, 0.99609375, 0.001953125) * 0.5, fma(fma(_3910, 0.315823078155517578125, 0.00390625), 0.25, 0.5));
-        _6639 = float2(fma(_3925, 0.998046875, 0.0009765625), fma(_3910, 0.3170664608478546142578125, 0.001953125) * 0.5);
-    }
-    else
-    {
-        float2 _6640;
-        float2 _6648;
-        if (abs(_3953 - 1.0) < 0.001000000047497451305389404296875)
-        {
-            float _4006 = fma(_3925, 0.99609375, 0.001953125);
-            float _4016 = fma(fma(_3910, 0.315823078155517578125, 0.00390625), 0.25, 0.5);
-            _6648 = float2(fma(_4006, 0.5, 0.5), _4016);
-            _6640 = float2(_4006 * 0.5, _4016);
-        }
-        else
-        {
-            float2 _6641;
-            float2 _6649;
-            if (abs(_3953 - 2.0) < 0.001000000047497451305389404296875)
-            {
-                float _4044 = fma(_3925, 0.99609375, 0.001953125);
-                float _4052 = fma(_3910, 0.315823078155517578125, 0.00390625);
-                _6649 = float2(_4044 * 0.5, fma(_4052, 0.25, 0.75));
-                _6641 = float2(fma(_4044, 0.5, 0.5), fma(_4052, 0.25, 0.5));
-            }
-            else
-            {
-                float2 _6642;
-                float2 _6650;
-                if (abs(_3953 - 3.0) < 0.001000000047497451305389404296875)
-                {
-                    _6650 = float2(fma(fma(_3925, 0.9921875, 0.00390625), 0.25, 0.5), fma(fma(_3910, 0.3133362829685211181640625, 0.0078125), 0.125, 0.75));
-                    _6642 = float2(fma(_3925, 0.99609375, 0.001953125) * 0.5, fma(fma(_3910, 0.315823078155517578125, 0.00390625), 0.25, 0.75));
-                }
-                else
-                {
-                    float2 _6643;
-                    float2 _6651;
-                    if (abs(_3953 - 4.0) < 0.001000000047497451305389404296875)
-                    {
-                        float _4120 = fma(_3925, 0.9921875, 0.00390625);
-                        float _4130 = fma(fma(_3910, 0.3133362829685211181640625, 0.0078125), 0.125, 0.75);
-                        _6651 = float2(fma(_4120, 0.25, 0.75), _4130);
-                        _6643 = float2(fma(_4120, 0.25, 0.5), _4130);
-                    }
-                    else
-                    {
-                        float2 _6644;
-                        float2 _6652;
-                        if (abs(_3953 - 5.0) < 0.001000000047497451305389404296875)
-                        {
-                            float _4158 = fma(_3925, 0.9921875, 0.00390625);
-                            float _4166 = fma(_3910, 0.3133362829685211181640625, 0.0078125);
-                            _6652 = float2(fma(_4158, 0.25, 0.5), fma(_4166, 0.125, 0.875));
-                            _6644 = float2(fma(_4158, 0.25, 0.75), fma(_4166, 0.125, 0.75));
-                        }
-                        else
-                        {
-                            float2 _6645;
-                            float2 _6653;
-                            if (abs(_3953 - 6.0) < 0.001000000047497451305389404296875)
-                            {
-                                float _4196 = fma(_3925, 0.9921875, 0.00390625);
-                                float _4206 = fma(fma(_3910, 0.3133362829685211181640625, 0.0078125), 0.125, 0.875);
-                                _6653 = float2(fma(_4196, 0.25, 0.75), _4206);
-                                _6645 = float2(fma(_4196, 0.25, 0.5), _4206);
-                            }
-                            else
-                            {
-                                float2 _6654;
-                                if (abs(_3953 - 7.0) < 0.001000000047497451305389404296875)
-                                {
-                                    _6654 = float2(fma(fma(_3925, 0.9921875, 0.00390625), 0.25, 0.75), fma(fma(_3910, 0.3133362829685211181640625, 0.0078125), 0.125, 0.875));
-                                }
-                                else
-                                {
-                                    _6654 = _6473;
-                                }
-                                _6653 = _6654;
-                                _6645 = _6654;
-                            }
-                            _6652 = _6653;
-                            _6644 = _6645;
-                        }
-                        _6651 = _6652;
-                        _6643 = _6644;
-                    }
-                    _6650 = _6651;
-                    _6642 = _6643;
-                }
-                _6649 = _6650;
-                _6641 = _6642;
-            }
-            _6648 = _6649;
-            _6640 = _6641;
-        }
-        _6647 = _6648;
-        _6639 = _6640;
-    }
-    float4 _4278 = mix(_AmbientTexture.sample(_AmbientTextureSmplr, _6639), _AmbientTexture.sample(_AmbientTextureSmplr, _6647), float4(fma(_3858, 7.0, -_3953)));
-    float4 _4303 = (float4(-1.0, -0.0274999998509883880615234375, -0.572000026702880859375, 0.02199999988079071044921875) * _2425) + float4(1.0, 0.0425000004470348358154296875, 1.03999996185302734375, -0.039999999105930328369140625);
-    float _4305 = _4303.x;
-    float2 _4323 = (float2(-1.03999996185302734375, 1.03999996185302734375) * fma(fast::min(_4305 * _4305, exp2((-9.27999973297119140625) * _2559)), _4305, _4303.y)) + _4303.zw;
-    float3 _3210 = (((((_2456 * _4323.x) + float3(_4323.y * fast::clamp(50.0 * _2456.y, 0.0, 1.0))) * (_4278.xyz / float3(_4278.w))) * fast::max(float3(_2588), ((((((_2456 * 2.040400028228759765625) - float3(0.3323999941349029541015625)) * _2588) + ((_2456 * (-4.79510021209716796875)) + float3(0.6417000293731689453125))) * _2588) + ((_2456 * 2.755199909210205078125) + float3(0.69029998779296875))) * _2588)) * buffer._AmbientIntensity) * 1.0;
-    float3 _6682;
-    float3 _6683;
-    if (_2652 > 0.5)
-    {
-        float3 _4396 = fast::normalize(_2659 + _6599);
-        float _4402 = fast::max(0.0, dot(_2112, _2659));
-        float _4413 = fast::max(0.0, dot(_6599, _4396));
-        float _4429 = fma(-_2559, _4402, fma(2.0 * _4413, _4413, -1.0));
-        float _6671;
-        if (_4429 >= 0.0)
-        {
-            _6671 = 1.0 / fast::max(_4402, _2559);
-        }
-        else
-        {
-            _6671 = 1.0;
-        }
-        float _4507 = fast::max(0.0, dot(_2112, _4396));
-        float _4565 = 1.0 - _4402;
-        float _4593 = fma(fma(_4507, _2536, -_4507), _4507, 1.0);
-        float _4606 = 1.0 - _4413;
-        float _4620 = _4606 * _4606;
-        _6683 = _3210 + ((((((((_2456 + ((float3(1.0) - _2456) * ((_4620 * _4620) * _4606))) * (0.5 / (fma(_2531, fma(_2559, _4565, _4402), _2559 * fma(_2531, _4565, _4402)) + 9.9999997473787516355514526367188e-06))) * ((_2536 * 0.31830990314483642578125) / fma(_4593, _4593, 1.0000000116860974230803549289703e-07))) * 3.1415927410125732421875) * _4402) * buffer.u_DirLightsColor[0].xyz) * _2671) * 1.0);
-        _6682 = _3203 + ((((_2449 * buffer.u_DirLightsColor[0].xyz) * _2671) * ((fma(((0.449999988079071044921875 * _2536) / fma(_2531, _2531, 0.0900000035762786865234375)) * _4429, _6671, 1.0 - ((0.5 * _2536) / fma(_2531, _2531, 0.3300000131130218505859375))) * fma(_2425, 0.5, 1.0)) * _4402)) * 1.0);
-    }
-    else
-    {
-        _6683 = _3210;
-        _6682 = _3203;
-    }
-    float3 _6684;
-    float3 _6685;
-    if (_2686 > 0.5)
-    {
-        float _4635 = fast::max(0.0, dot(_2112, _2693));
-        float3 _4671 = fast::normalize(_2693 + _6599);
-        float _4676 = fast::max(0.0, dot(_2112, _4671));
-        float _4730 = fma(fma(_4676, _2536, -_4676), _4676, 1.0);
-        float _4743 = 1.0 - fast::max(0.0, dot(_6599, _4671));
-        float _4757 = _4743 * _4743;
-        _6685 = _6683 + ((((((((_2456 + ((float3(1.0) - _2456) * ((_4757 * _4757) * _4743))) * 0.25) * ((_2536 * 0.31830990314483642578125) / fma(_4730, _4730, 1.0000000116860974230803549289703e-07))) * 3.1415927410125732421875) * _4635) * buffer.u_DirLightsColor[1].xyz) * _2705) * 1.0);
-        _6684 = _6682 + ((((_2449 * buffer.u_DirLightsColor[1].xyz) * _2705) * _4635) * 1.0);
-    }
-    else
-    {
-        _6685 = _6683;
-        _6684 = _6682;
-    }
-    float3 _6686;
-    float3 _6687;
-    if (_2720 > 0.5)
-    {
-        float _4772 = fast::max(0.0, dot(_2112, _2727));
-        float3 _4808 = fast::normalize(_2727 + _6599);
-        float _4813 = fast::max(0.0, dot(_2112, _4808));
-        float _4867 = fma(fma(_4813, _2536, -_4813), _4813, 1.0);
-        float _4880 = 1.0 - fast::max(0.0, dot(_6599, _4808));
-        float _4894 = _4880 * _4880;
-        _6687 = _6685 + ((((((((_2456 + ((float3(1.0) - _2456) * ((_4894 * _4894) * _4880))) * 0.25) * ((_2536 * 0.31830990314483642578125) / fma(_4867, _4867, 1.0000000116860974230803549289703e-07))) * 3.1415927410125732421875) * _4772) * buffer.u_DirLightsColor[2].xyz) * _2739) * 1.0);
-        _6686 = _6684 + ((((_2449 * buffer.u_DirLightsColor[2].xyz) * _2739) * _4772) * 1.0);
-    }
-    else
-    {
-        _6687 = _6685;
-        _6686 = _6684;
-    }
-    float3 _6688;
-    float3 _6689;
-    if (_2761 > 0.5)
-    {
-        float _4909 = fast::max(0.0, dot(_2112, _2775));
-        float3 _4945 = fast::normalize(_2775 + _6599);
-        float _4950 = fast::max(0.0, dot(_2112, _4945));
-        float _5004 = fma(fma(_4950, _2536, -_4950), _4950, 1.0);
-        float _5017 = 1.0 - fast::max(0.0, dot(_6599, _4945));
-        float _5031 = _5017 * _5017;
-        _6689 = _6687 + (((((((((_2456 + ((float3(1.0) - _2456) * ((_5031 * _5031) * _5017))) * 0.25) * ((_2536 * 0.31830990314483642578125) / fma(_5004, _5004, 1.0000000116860974230803549289703e-07))) * 3.1415927410125732421875) * _4909) * buffer.u_PointLightsColor[0].xyz) * _2787) * _2807) * 1.0);
-        _6688 = _6686 + (((((_2449 * buffer.u_PointLightsColor[0].xyz) * _2787) * _2807) * _4909) * 1.0);
-    }
-    else
-    {
-        _6689 = _6687;
-        _6688 = _6686;
-    }
-    float3 _6690;
-    float3 _6691;
-    if (_2851 > 0.5)
-    {
-        float _5046 = fast::max(0.0, dot(_2112, _2865));
-        float3 _5082 = fast::normalize(_2865 + _6599);
-        float _5087 = fast::max(0.0, dot(_2112, _5082));
-        float _5141 = fma(fma(_5087, _2536, -_5087), _5087, 1.0);
-        float _5154 = 1.0 - fast::max(0.0, dot(_6599, _5082));
-        float _5168 = _5154 * _5154;
-        _6691 = _6689 + (((((((((_2456 + ((float3(1.0) - _2456) * ((_5168 * _5168) * _5154))) * 0.25) * ((_2536 * 0.31830990314483642578125) / fma(_5141, _5141, 1.0000000116860974230803549289703e-07))) * 3.1415927410125732421875) * _5046) * buffer.u_PointLightsColor[1].xyz) * _2877) * _2897) * 1.0);
-        _6690 = _6688 + (((((_2449 * buffer.u_PointLightsColor[1].xyz) * _2877) * _2897) * _5046) * 1.0);
-    }
-    else
-    {
-        _6691 = _6689;
-        _6690 = _6688;
-    }
-    float3 _6692;
-    float3 _6693;
-    if (_2943 > 0.5)
-    {
-        float _5183 = fast::max(0.0, dot(_2112, _2957));
-        float3 _5219 = fast::normalize(_2957 + _6599);
-        float _5224 = fast::max(0.0, dot(_2112, _5219));
-        float _5278 = fma(fma(_5224, _2536, -_5224), _5224, 1.0);
-        float _5291 = 1.0 - fast::max(0.0, dot(_6599, _5219));
-        float _5305 = _5291 * _5291;
-        _6693 = _6691 + (((((((((_2456 + ((float3(1.0) - _2456) * ((_5305 * _5305) * _5291))) * 0.25) * ((_2536 * 0.31830990314483642578125) / fma(_5278, _5278, 1.0000000116860974230803549289703e-07))) * 3.1415927410125732421875) * _5183) * buffer.u_SpotLightsColor[0].xyz) * _2969) * _3010) * 1.0);
-        _6692 = _6690 + (((((_2449 * buffer.u_SpotLightsColor[0].xyz) * _2969) * _3010) * _5183) * 1.0);
-    }
-    else
-    {
-        _6693 = _6691;
-        _6692 = _6690;
-    }
-    float3 _6694;
-    float3 _6695;
-    if (_3056 > 0.5)
-    {
-        float _5320 = fast::max(0.0, dot(_2112, _3070));
-        float3 _5356 = fast::normalize(_3070 + _6599);
-        float _5361 = fast::max(0.0, dot(_2112, _5356));
-        float _5415 = fma(fma(_5361, _2536, -_5361), _5361, 1.0);
-        float _5428 = 1.0 - fast::max(0.0, dot(_6599, _5356));
-        float _5442 = _5428 * _5428;
-        _6695 = _6693 + (((((((((_2456 + ((float3(1.0) - _2456) * ((_5442 * _5442) * _5428))) * 0.25) * ((_2536 * 0.31830990314483642578125) / fma(_5415, _5415, 1.0000000116860974230803549289703e-07))) * 3.1415927410125732421875) * _5320) * buffer.u_SpotLightsColor[1].xyz) * _3082) * _3123) * 1.0);
-        _6694 = _6692 + (((((_2449 * buffer.u_SpotLightsColor[1].xyz) * _3082) * _3123) * _5320) * 1.0);
-    }
-    else
-    {
-        _6695 = _6693;
-        _6694 = _6692;
-    }
-    float3 _3366 = (_6694 + ((float3(pow(buffer._EmissiveColor.x, 2.2000000476837158203125), pow(buffer._EmissiveColor.y, 2.2000000476837158203125), pow(buffer._EmissiveColor.z, 2.2000000476837158203125)) * float3(pow(_2117.x, 2.2000000476837158203125), pow(_2117.y, 2.2000000476837158203125), pow(_2117.z, 2.2000000476837158203125))) * buffer._EmissiveIntensity)) + _6695;
-    out.glResult = float4(pow(_3366.x, 0.4545449912548065185546875), pow(_3366.y, 0.4545449912548065185546875), pow(_3366.z, 0.4545449912548065185546875), buffer._AlbedoColor.w * _2088.w);
+    float2 uv0 = in.v_uv0;
+    float envInt = buffer._AmbientIntensity;
+    float envRot = buffer._AmbientRotation;
+    float3 param = buffer._AlbedoColor.xyz;
+    float3 albedo = GammaToLinear(param);
+    float opacity = buffer._AlbedoColor.w;
+    float4 t_AlbedoTex = _AlbedoTexture.sample(_AlbedoTextureSmplr, uv0);
+    float3 param_1 = t_AlbedoTex.xyz;
+    albedo *= GammaToLinear(param_1);
+    opacity *= t_AlbedoTex.w;
+    float cutoff = buffer.u_Cutoff;
+    float metallic = buffer._Metallic;
+    float roughness = buffer._Roughness;
+    float ao = 1.0;
+    float3 _2112 = normalize(in.v_nDirWS);
+    float3 clearCoatNormal = _2112;
+    float3 normal = _2112;
+    float4 t_EmissiveTex = _EmissiveTexture.sample(_EmissiveTextureSmplr, uv0);
+    float3 param_2 = buffer._EmissiveColor.xyz;
+    float3 param_3 = t_EmissiveTex.xyz;
+    float3 emissive = (GammaToLinear(param_2) * GammaToLinear(param_3)) * buffer._EmissiveIntensity;
+    float param_4 = envInt;
+    float param_5 = envRot;
+    float3 param_6 = albedo;
+    float param_7 = opacity;
+    float param_8 = cutoff;
+    float3 param_9 = normal;
+    float3 param_10 = clearCoatNormal;
+    float param_11 = metallic;
+    float param_12 = roughness;
+    float param_13 = ao;
+    float subsurface;
+    float param_14 = subsurface;
+    float3 subsurfaceCol;
+    float3 param_15 = subsurfaceCol;
+    float3 subsurfaceColMultiply;
+    float3 param_16 = subsurfaceColMultiply;
+    float ior;
+    float param_17 = ior;
+    float transmittance;
+    float param_18 = transmittance;
+    float transmittanceColorAtDistance;
+    float param_19 = transmittanceColorAtDistance;
+    float thin;
+    float param_20 = thin;
+    float clearCoat;
+    float param_21 = clearCoat;
+    float clearCoatRoughness;
+    float param_22 = clearCoatRoughness;
+    float3 param_23 = emissive;
+    float anisotropic;
+    float param_24 = anisotropic;
+    float anisotropicRotate;
+    float param_25 = anisotropicRotate;
+    float rampID;
+    float param_26 = rampID;
+    float rim;
+    float param_27 = rim;
+    float3 rimCol;
+    float3 param_28 = rimCol;
+    float3 ambient;
+    float3 param_29 = ambient;
+    float3 matcap;
+    float3 param_30 = matcap;
+    float smoothFactor;
+    float param_31 = smoothFactor;
+    float4 finalColor = MainEntry(_AmbientTexture, _AmbientTextureSmplr, param_4, param_5, param_6, param_7, param_8, param_9, param_10, param_11, param_12, param_13, param_14, param_15, param_16, param_17, param_18, param_19, param_20, param_21, param_22, param_23, param_24, param_25, param_26, param_27, param_28, param_29, param_30, param_31, in.v_posWS, in.v_nDirWS, in.v_tDirWS, in.v_bDirWS, buffer.u_WorldSpaceCameraPos, buffer.u_DirLightsEnabled, buffer.u_DirLightNum, buffer.u_DirLightsDirection, buffer.u_DirLightsColor, buffer.u_DirLightsIntensity, buffer.u_PointLightsEnabled, buffer.u_PointLightNum, buffer.u_PointLightsPosition, buffer.u_PointLightsColor, buffer.u_PointLightsIntensity, buffer.u_PointLightsAttenRangeInv, buffer.u_SpotLightsEnabled, buffer.u_SpotLightNum, buffer.u_SpotLightsPosition, buffer.u_SpotLightsColor, buffer.u_SpotLightsIntensity, buffer.u_SpotLightsAttenRangeInv, buffer.u_SpotLightsDirection, buffer.u_SpotLightsOuterAngleCos, buffer.u_SpotLightsInnerAngleCos);
+    float4 proj_pos = buffer.u_VP * float4(in.v_posWS, 1.0);
+    float2 ndc_coord = proj_pos.xy / float2(proj_pos.w);
+    float2 screen_coord = (ndc_coord * 0.5) + float2(0.5);
+    float4 param_32 = finalColor;
+    float2 param_33 = screen_coord;
+    out.glResult = ApplyBlendMode(param_32, param_33);
     return out;
 }
 

@@ -10,72 +10,155 @@ uniform mediump float perceptualRoughness;
 in vec2 varScreenTexturePos;
 layout(location = 0) out vec4 fragColor;
 
-void main()
+mediump vec3 calcDirFromPanoramicTexCoords(mediump vec2 uv)
 {
-    mediump float _512 = 6.283185482025146484375 * varScreenTexturePos.x;
-    mediump float _515 = 3.1415927410125732421875 * (1.0 - varScreenTexturePos.y);
-    mediump float _519 = sin(_515);
-    mediump vec3 _531 = vec3(cos(_512) * _519, cos(_515), sin(_512) * _519);
-    mediump vec4 _890;
-    mediump float _891;
-    _891 = 0.0;
-    _890 = vec4(0.0);
-    mediump vec4 _910;
-    mediump float _911;
-    for (mediump int _889 = 0; _889 < 512; _891 = _911, _890 = _910, _889++)
+    mediump float a = 6.283185482025146484375 * uv.x;
+    mediump float b = 3.1415927410125732421875 * uv.y;
+    mediump float x = sin(a) * sin(b);
+    mediump float y = cos(b);
+    mediump float z = cos(a) * sin(b);
+    return vec3(z, y, x);
+}
+
+mediump float radicalInverse(inout mediump int n)
+{
+    mediump float val = 0.0;
+    mediump float invBase = 0.5;
+    mediump float invBi = invBase;
+    while (n > 0)
     {
-        mediump float _893;
-        _893 = 0.0;
-        mediump int _892 = _889;
-        mediump float _909 = 0.5;
-        for (; _892 > 0; )
+        mediump int d_i = n - ((n / 2) * 2);
+        val += (float(d_i) * invBi);
+        n /= 2;
+        invBi *= 0.5;
+    }
+    return val;
+}
+
+mediump vec2 hammersley(mediump int i, mediump int N)
+{
+    mediump int param = i;
+    mediump float _106 = radicalInverse(param);
+    return vec2(float(i) / float(N), _106);
+}
+
+mediump vec3 importanceSampleGGX(mediump vec2 Xi, mediump float roughness, mediump vec3 N)
+{
+    mediump float a = roughness * roughness;
+    mediump float Phi = 6.283185482025146484375 * Xi.x;
+    mediump float CosTheta = sqrt((1.0 - Xi.y) / (1.0 + (((a * a) - 1.0) * Xi.y)));
+    mediump float SinTheta = sqrt(1.0 - (CosTheta * CosTheta));
+    mediump vec3 H;
+    H.x = SinTheta * cos(Phi);
+    H.y = SinTheta * sin(Phi);
+    H.z = CosTheta;
+    mediump vec3 UpVector = vec3(0.0, 0.0, 1.0);
+    mediump vec3 TangentX = normalize(cross(UpVector, N));
+    mediump vec3 TangentY = cross(N, TangentX);
+    return normalize(((TangentX * H.x) + (TangentY * H.y)) + (N * H.z));
+}
+
+mediump float DistributionGGX(mediump vec3 N, mediump vec3 H, mediump float roughness)
+{
+    mediump float a = roughness * roughness;
+    mediump float a2 = a * a;
+    mediump float NdotH = max(dot(N, H), 0.0);
+    mediump float NdotH2 = NdotH * NdotH;
+    mediump float nom = a2;
+    mediump float denom = (NdotH2 * (a2 - 1.0)) + 1.0;
+    denom = (3.1415927410125732421875 * denom) * denom;
+    return nom / denom;
+}
+
+mediump float _atan2(mediump float x, mediump float y)
+{
+    mediump float signx = (x < 0.0) ? (-1.0) : 1.0;
+    return signx * acos(clamp(y / length(vec2(x, y)), -1.0, 1.0));
+}
+
+mediump vec2 calcPanoramicTexCoordsFromDir(mediump vec3 reflDir)
+{
+    mediump float param = reflDir.x;
+    mediump float param_1 = -reflDir.z;
+    mediump vec2 uv;
+    uv.x = _atan2(param, param_1) - 1.57079637050628662109375;
+    uv.y = acos(reflDir.y);
+    uv /= vec2(6.283185482025146484375, 3.1415927410125732421875);
+    uv.y = 1.0 - uv.y;
+    return uv;
+}
+
+mediump vec4 prefilterEnvMap(mediump vec3 R, mediump float roughness, mediump float bias)
+{
+    mediump vec3 N = R;
+    mediump vec3 V = R;
+    mediump vec4 color = vec4(0.0);
+    mediump float totalWeight = 0.0;
+    mediump float _412;
+    for (mediump int i = 0; i < 512; i++)
+    {
+        mediump int param = i;
+        mediump int param_1 = 512;
+        mediump vec2 Xi = hammersley(param, param_1);
+        mediump vec2 param_2 = Xi;
+        mediump float param_3 = roughness;
+        mediump vec3 param_4 = N;
+        mediump vec3 H = importanceSampleGGX(param_2, param_3, param_4);
+        mediump vec3 L = (H * (2.0 * dot(V, H))) - V;
+        mediump float dotNL = clamp(dot(N, L), 0.0, 1.0);
+        if (dotNL > 0.0)
         {
-            mediump int _680 = _892 / 2;
-            mediump float _688 = float(_892 - (_680 * 2)) * _909 + _893;
-            _909 *= 0.5;
-            _893 = _688;
-            _892 = _680;
-            continue;
-        }
-        mediump float _708 = perceptualRoughness * perceptualRoughness;
-        mediump float _711 = float(_889) * 0.012271846644580364227294921875;
-        mediump float _718 = _708 * _708 + (-1.0);
-        mediump float _724 = sqrt((1.0 - _893) / (_718 * _893 + 1.0));
-        mediump float _729 = sqrt((-_724) * _724 + 1.0);
-        mediump vec3 _745 = normalize(cross(vec3(0.0, 0.0, 1.0), _531));
-        mediump vec3 _763 = normalize(((_745 * (_729 * cos(_711))) + (cross(_531, _745) * (_729 * sin(_711)))) + (_531 * _724));
-        mediump float _576 = dot(_531, _763);
-        mediump vec3 _581 = (_763 * (2.0 * _576)) - _531;
-        mediump float _585 = clamp(dot(_531, _581), 0.0, 1.0);
-        if (_585 > 0.0)
-        {
-            mediump float _781 = max(_576, 0.0);
-            mediump float _790 = (_781 * _781) * _718 + 1.0;
-            mediump float _897;
-            if (perceptualRoughness == 0.0)
+            mediump vec3 param_5 = N;
+            mediump vec3 param_6 = H;
+            mediump float param_7 = roughness;
+            mediump float D = DistributionGGX(param_5, param_6, param_7);
+            mediump float NdotH = max(dot(N, H), 0.0);
+            mediump float HdotV = max(dot(H, V), 0.0);
+            mediump float pdf = ((D * NdotH) / (4.0 * HdotV)) + 9.9999997473787516355514526367188e-05;
+            mediump float resulotion = samplerEnvSize.x * samplerEnvSize.y;
+            mediump float saTexel = 12.56637096405029296875 / resulotion;
+            mediump float saSample = 1.0 / ((512.0 * pdf) + 9.9999997473787516355514526367188e-05);
+            if (roughness == 0.0)
             {
-                _897 = 0.0;
+                _412 = 0.0;
             }
             else
             {
-                _897 = 0.5 * log2((1.0 / (512.0 * (((((_708 * _708) / ((3.1415927410125732421875 * _790) * _790)) * _781) / (4.0 * max(dot(_763, _531), 0.0))) + 9.9999997473787516355514526367188e-05) + 9.9999997473787516355514526367188e-05)) / (12.56637096405029296875 / (samplerEnvSize.x * samplerEnvSize.y)));
+                _412 = 0.5 * log2(saSample / saTexel);
             }
-            mediump float _805 = -_581.z;
-            mediump float _807 = _581.x;
-            mediump vec2 _816 = vec2(((_807 < 0.0) ? (-1.0) : 1.0) * acos(clamp(_805 / length(vec2(_807, _805)), -1.0, 1.0)) + (-1.57079637050628662109375), acos(_581.y)) * vec2(0.15915493667125701904296875, 0.3183098733425140380859375);
-            mediump vec2 _885 = _816;
-            _885.y = 1.0 - _816.y;
-            _911 = _891 + _585;
-            _910 = min(_890 + (textureLod(samplerEnv, _885, _897 + roughnessScale) * _585), vec4(10000.0));
-        }
-        else
-        {
-            _911 = _891;
-            _910 = _890;
+            mediump float mipLevel = _412;
+            mediump vec3 param_8 = L;
+            color += (textureLod(samplerEnv, calcPanoramicTexCoordsFromDir(param_8), mipLevel + bias) * dotNL);
+            totalWeight += dotNL;
+            color = min(color, vec4(10000.0));
         }
     }
-    mediump vec4 _654 = _890 / vec4(_891);
-    mediump float _850 = 1.0 / max(1.0, max(_654.x, max(_654.y, _654.z)));
-    fragColor = vec4(_654.xyz * _850, _850);
+    return color / vec4(totalWeight);
+}
+
+mediump vec4 encodeRGBD(mediump vec3 rgb)
+{
+    mediump float a = 1.0 / max(1.0, max(rgb.x, max(rgb.y, rgb.z)));
+    return vec4(rgb * a, a);
+}
+
+mediump vec4 doEnv(mediump vec2 uv, mediump float roughness)
+{
+    mediump vec2 param = uv;
+    mediump vec3 N = calcDirFromPanoramicTexCoords(param);
+    mediump vec3 param_1 = N;
+    mediump float param_2 = roughness;
+    mediump float param_3 = roughnessScale;
+    mediump vec3 param_4 = prefilterEnvMap(param_1, param_2, param_3).xyz;
+    return encodeRGBD(param_4);
+}
+
+void main()
+{
+    mediump vec2 uv = varScreenTexturePos;
+    uv.y = 1.0 - uv.y;
+    mediump vec2 param = uv;
+    mediump float param_1 = perceptualRoughness;
+    fragColor = doEnv(param, param_1);
 }
 

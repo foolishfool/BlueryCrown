@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Right Brow Face Inset
-guid: {a: 15222818955199488875, b: 15428078136286453938}
+guid: {a: 5755515101720082234, b: 17109056229872047775}
 xshader: {localId: 1, path: 00000000-0000-0000-0000-000000000019--00000000-0000-0000-0000-000000000019.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 11262619206512939635, b: 13880594421496545959}
+  guid: {a: 5250880376706321553, b: 13714427531315051693}
   floatmap:
     __class: Map
     _Opacity: 1

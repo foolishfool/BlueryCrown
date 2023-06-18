@@ -13,11 +13,11 @@ struct buffer_t
 
 struct main0_out
 {
-    float2 g_vary_uv0 [[user(locn0)]];
-    float4 v_sampling_pos [[user(locn1)]];
-    float4 v_background_pos [[user(locn2)]];
-    float3 v_worldPos [[user(locn3)]];
-    float3 v_Normal [[user(locn4)]];
+    float2 g_vary_uv0;
+    float4 v_sampling_pos;
+    float4 v_background_pos;
+    float3 v_worldPos;
+    float3 v_Normal;
     float4 gl_Position [[position]];
 };
 
@@ -31,14 +31,17 @@ struct main0_in
 vertex main0_out main0(main0_in in [[stage_in]], constant buffer_t& buffer)
 {
     main0_out out = {};
-    float4 _45 = float4x4(float4(buffer._MeshRescale.x, 0.0, 0.0, 0.0), float4(0.0, buffer._MeshRescale.y, 0.0, 0.0), float4(0.0, 0.0, buffer._MeshRescale.z, 0.0), float4(0.0, 0.0, 0.0, 1.0)) * float4(in.attPosition, 1.0);
-    out.g_vary_uv0 = fma(in.attTexcoord0 - float2(0.5), buffer._TexRescale, float2(0.5));
-    float4 _75 = buffer.u_MVP * _45;
-    out.gl_Position = _75;
-    out.v_worldPos = _45.xyz;
+    float3 modelPostiton = in.attPosition;
+    float4x4 rescaleMat = float4x4(float4(buffer._MeshRescale.x, 0.0, 0.0, 0.0), float4(0.0, buffer._MeshRescale.y, 0.0, 0.0), float4(0.0, 0.0, buffer._MeshRescale.z, 0.0), float4(0.0, 0.0, 0.0, 1.0));
+    float4 homogeneous_modelPostiton = rescaleMat * float4(modelPostiton, 1.0);
+    float4 homogeneous_pos = float4(in.attPosition, 1.0);
+    homogeneous_pos = rescaleMat * homogeneous_pos;
+    out.g_vary_uv0 = ((in.attTexcoord0 - float2(0.5)) * buffer._TexRescale) + float2(0.5);
+    out.gl_Position = buffer.u_MVP * homogeneous_pos;
+    out.v_worldPos = homogeneous_pos.xyz;
     out.v_Normal = float3x3(buffer.u_TransposeInvModel[0].xyz, buffer.u_TransposeInvModel[1].xyz, buffer.u_TransposeInvModel[2].xyz) * in.attNormal;
-    out.v_sampling_pos = _75;
-    out.v_background_pos = _75;
+    out.v_sampling_pos = buffer.u_MVP * homogeneous_modelPostiton;
+    out.v_background_pos = buffer.u_MVP * homogeneous_pos;
     out.gl_Position.z = (out.gl_Position.z + out.gl_Position.w) * 0.5;       // Adjust clip-space for Metal
     return out;
 }

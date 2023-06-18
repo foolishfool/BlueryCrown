@@ -2,6 +2,69 @@
 precision highp float;
 precision highp int;
 
+struct SurfaceParams
+{
+    vec3 albedo;
+    float opacity;
+    float cutoff;
+    vec3 emissive;
+    vec2 metalParams;
+    vec3 roughParams;
+    vec3 clearCoatRoughParams;
+    vec2 occParams;
+    vec3 diffCol;
+    vec3 specCol;
+    vec2 anisoParams;
+    float thin;
+    float subsurface;
+    vec3 subsurfaceColMultiply;
+    vec3 subsurfaceCol;
+    float ior;
+    float transmittance;
+    float transmittanceColorAtDistance;
+    float clearCoat;
+    vec3 pos;
+    vec3 nDir;
+    vec3 vnDir;
+    vec3 cnDir;
+    vec3 tDir;
+    vec3 bDir;
+    vec3 vDir;
+    vec3 rDir;
+    vec3 crDir;
+};
+
+struct LightParams
+{
+    float enable;
+    vec3 lDir;
+    vec3 color;
+    float intensity;
+    vec3 attenuate;
+};
+
+struct EnvironmentParams
+{
+    float intensity;
+    float rotation;
+};
+
+struct VSOutput
+{
+    vec3 posWS;
+    vec3 nDirWS;
+    vec3 tDirWS;
+    vec3 bDirWS;
+};
+
+struct LightGroupParams
+{
+    LightParams DirLights[3];
+    LightParams PointLights[2];
+    LightParams SpotLights[2];
+    float dummy;
+};
+
 uniform vec4 u_WorldSpaceCameraPos;
 uniform float u_DirLightsEnabled[3];
 uniform float u_DirLightNum;
@@ -27,464 +90,718 @@ uniform float _AmbientIntensity;
 uniform float _AmbientRotation;
 uniform vec4 _AlbedoColor;
 uniform mediump sampler2D _AlbedoTexture;
+uniform float u_Cutoff;
 uniform float _Metallic;
 uniform float _Roughness;
 uniform mediump sampler2D _EmissiveTexture;
 uniform vec4 _EmissiveColor;
 uniform float _EmissiveIntensity;
 uniform mediump sampler2D _AmbientTexture;
+uniform mat4 u_VP;
+uniform float _Occlusion;
+uniform float u_Thin;
+uniform mediump sampler2D u_ThinHeightTex;
+uniform vec4 u_Time;
+uniform mediump sampler2D u_FBOTexture;
 
 in vec3 v_posWS;
 in vec3 v_nDirWS;
+in vec3 v_tDirWS;
+in vec3 v_bDirWS;
 in vec2 v_uv0;
 layout(location = 0) out vec4 glResult;
 
-float _6766;
+vec3 GammaToLinear(vec3 col)
+{
+    return vec3(pow(col.x, 2.2000000476837158203125), pow(col.y, 2.2000000476837158203125), pow(col.z, 2.2000000476837158203125));
+}
+
+VSOutput BuildVSOutput()
+{
+    VSOutput V;
+    V.posWS = v_posWS;
+    V.nDirWS = normalize(v_nDirWS);
+    V.tDirWS = normalize(v_tDirWS);
+    V.bDirWS = normalize(v_bDirWS);
+    return V;
+}
+
+float saturate(float x)
+{
+    return clamp(x, 0.0, 1.0);
+}
+
+float Pow2(float x)
+{
+    return x * x;
+}
+
+float SpecularAO(SurfaceParams S)
+{
+    float ndv = max(0.0, dot(S.nDir, S.vDir));
+    float visibility = S.occParams.x;
+    float perceptualRoughness = S.roughParams.x;
+    float param = (pow(ndv + visibility, exp2(((-16.0) * perceptualRoughness) - 1.0)) - 1.0) + visibility;
+    float lagardeAO = saturate(param);
+    float horizon = min(1.0 + dot(S.rDir, S.nDir), 1.0);
+    float horizonAO = horizon * horizon;
+    return lagardeAO * horizonAO;
+}
+
+SurfaceParams BuildSurfaceParams(VSOutput V, float envInt, float envRot, vec3 albedo, float opacity, float cutoff, vec3 normal, vec3 clearCoatNormal, float metallic, float roughness, float ao, float subsurface, vec3 subsurfaceCol, vec3 subsurfaceColMultiply, float ior, float transmittance, float transmittanceColorAtDistance, float thin, float clearCoat, float clearCoatRoughness, vec3 emissive, float anisotropic, float anisotropicRotate, float rampID, float rim, vec3 rimCol, vec3 ambient, vec3 matcap, float smoothFactor)
+{
+    SurfaceParams S;
+    S.albedo = albedo;
+    S.opacity = opacity;
+    float param = metallic;
+    S.metalParams.x = saturate(param);
+    S.metalParams.y = 0.959999978542327880859375 * (1.0 - S.metalParams.x);
+    S.roughParams.x = clamp(roughness, 0.07999999821186065673828125, 1.0);
+    float param_1 = S.roughParams.x;
+    S.roughParams.y = Pow2(param_1);
+    float param_2 = S.roughParams.y;
+    S.roughParams.z = Pow2(param_2);
+    float param_3 = ao;
+    S.occParams.x = saturate(param_3);
+    float param_4 = thin;
+    S.thin = saturate(param_4);
+    S.clearCoat = clearCoat;
+    S.emissive = emissive;
+    S.diffCol = S.albedo * S.metalParams.y;
+    S.specCol = mix(vec3(0.039999999105930328369140625), S.albedo, vec3(S.metalParams.x));
+    S.subsurface = subsurface;
+    S.subsurfaceColMultiply = subsurfaceColMultiply;
+    S.subsurfaceCol = subsurfaceCol;
+    S.ior = ior;
+    S.transmittance = transmittance;
+    S.transmittanceColorAtDistance = transmittanceColorAtDistance;
+    S.pos = V.posWS;
+    S.vnDir = V.nDirWS;
+    S.nDir = normal;
+    S.cnDir = clearCoatNormal;
+    S.tDir = V.tDirWS;
+    S.bDir = V.bDirWS;
+    S.vDir = normalize(u_WorldSpaceCameraPos.xyz - V.posWS);
+    vec3 _1452;
+    if (dot(S.vDir, S.nDir) < 0.0)
+    {
+        _1452 = reflect(S.vDir, S.nDir);
+    }
+    else
+    {
+        _1452 = S.vDir;
+    }
+    S.vDir = _1452;
+    S.rDir = normalize(reflect(-S.vDir, S.nDir));
+    SurfaceParams param_5 = S;
+    S.occParams.y = SpecularAO(param_5);
+    return S;
+}
+
+EnvironmentParams BuildEnvironmentParams(float envInt, float envRot)
+{
+    EnvironmentParams E;
+    E.intensity = envInt;
+    E.rotation = envRot;
+    return E;
+}
+
+LightParams BuildDirLightParams(SurfaceParams S, mediump int index)
+{
+    LightParams ML;
+    ML.enable = u_DirLightsEnabled[index] * step(float(index) + 0.5, u_DirLightNum);
+    ML.lDir = normalize(-u_DirLightsDirection[index].xyz);
+    ML.color = u_DirLightsColor[index].xyz;
+    ML.intensity = u_DirLightsIntensity[index] * ML.enable;
+    ML.attenuate = vec3(1.0);
+    return ML;
+}
+
+float Pow4(float x)
+{
+    float x2 = x * x;
+    return x2 * x2;
+}
+
+LightParams BuildPointLightParams(SurfaceParams S, mediump int index)
+{
+    vec3 lVec = vec3(0.0);
+    float lDist = 0.0;
+    LightParams PL1;
+    PL1.enable = u_PointLightsEnabled[index] * step(float(index) + 0.5, u_PointLightNum);
+    lVec = u_PointLightsPosition[index].xyz - S.pos;
+    lDist = length(lVec);
+    PL1.lDir = lVec / vec3(lDist);
+    PL1.color = u_PointLightsColor[index].xyz;
+    PL1.intensity = u_PointLightsIntensity[index] * PL1.enable;
+    lDist *= u_PointLightsAttenRangeInv[index];
+    float param = lDist;
+    float param_1 = 1.0 - Pow4(param);
+    float param_2 = saturate(param_1);
+    float param_3 = lDist;
+    float attenuate = (Pow2(param_2) * (Pow2(param_3) + 1.0)) * 0.25;
+    PL1.attenuate = vec3(attenuate, attenuate, attenuate);
+    return PL1;
+}
+
+LightParams BuildSpotLightParams(SurfaceParams S, mediump int index)
+{
+    vec3 lVec = vec3(0.0);
+    float lDist = 0.0;
+    vec3 spotDir = vec3(0.0);
+    float angleAtten = 0.0;
+    LightParams SL1;
+    SL1.enable = u_SpotLightsEnabled[index] * step(float(index) + 0.5, u_SpotLightNum);
+    lVec = u_SpotLightsPosition[index].xyz - S.pos;
+    lDist = length(lVec);
+    SL1.lDir = lVec / vec3(lDist);
+    SL1.color = u_SpotLightsColor[index].xyz;
+    SL1.intensity = u_SpotLightsIntensity[index] * SL1.enable;
+    lDist *= u_SpotLightsAttenRangeInv[index];
+    float param = lDist;
+    float param_1 = 1.0 - Pow4(param);
+    float param_2 = saturate(param_1);
+    float param_3 = lDist;
+    float attenuate = (Pow2(param_2) * (Pow2(param_3) + 1.0)) * 0.25;
+    spotDir = normalize(-u_SpotLightsDirection[index].xyz);
+    angleAtten = max(0.0, dot(SL1.lDir, spotDir));
+    attenuate *= smoothstep(u_SpotLightsOuterAngleCos[index], u_SpotLightsInnerAngleCos[index], angleAtten);
+    SL1.attenuate = vec3(attenuate, attenuate, attenuate);
+    return SL1;
+}
+
+LightGroupParams BuildLightGroupParams(SurfaceParams S)
+{
+    LightGroupParams LG;
+    LG.dummy = 0.0;
+    SurfaceParams param = S;
+    mediump int param_1 = 0;
+    LG.DirLights[0] = BuildDirLightParams(param, param_1);
+    SurfaceParams param_2 = S;
+    mediump int param_3 = 1;
+    LG.DirLights[1] = BuildDirLightParams(param_2, param_3);
+    SurfaceParams param_4 = S;
+    mediump int param_5 = 2;
+    LG.DirLights[2] = BuildDirLightParams(param_4, param_5);
+    SurfaceParams param_6 = S;
+    mediump int param_7 = 0;
+    LG.PointLights[0] = BuildPointLightParams(param_6, param_7);
+    SurfaceParams param_8 = S;
+    mediump int param_9 = 1;
+    LG.PointLights[1] = BuildPointLightParams(param_8, param_9);
+    SurfaceParams param_10 = S;
+    mediump int param_11 = 0;
+    LG.SpotLights[0] = BuildSpotLightParams(param_10, param_11);
+    SurfaceParams param_12 = S;
+    mediump int param_13 = 1;
+    LG.SpotLights[1] = BuildSpotLightParams(param_12, param_13);
+    return LG;
+}
+
+float Atan2(float x, float y)
+{
+    float signx = (x < 0.0) ? (-1.0) : 1.0;
+    return signx * acos(clamp(y / length(vec2(x, y)), -1.0, 1.0));
+}
+
+vec2 GetPanoramicTexCoordsFromDir(inout vec3 dir, float rotation)
+{
+    dir = normalize(dir);
+    float param = dir.x;
+    float param_1 = -dir.z;
+    vec2 uv;
+    uv.x = (Atan2(param, param_1) - 1.57079637050628662109375) / 6.283185482025146484375;
+    uv.y = acos(dir.y) / 3.1415927410125732421875;
+    uv.x += rotation;
+    uv.x = fract((uv.x + floor(uv.x)) + 1.0);
+    return uv;
+}
+
+vec3 SamplerEncodedPanoramicWithUV(mediump sampler2D panoramic, vec2 uv, float lod)
+{
+    float lodMin = floor(lod);
+    float lodLerp = lod - lodMin;
+    vec2 uvLodMin = uv;
+    vec2 uvLodMax = uv;
+    vec2 size = vec2(0.0);
+    if (abs(lodMin - 0.0) < 0.001000000047497451305389404296875)
+    {
+        uvLodMin.x = ((((uv.x * 511.0) / 512.0) + 0.0009765625) * 1.0) + 0.0;
+        uvLodMin.y = ((((uv.y * 255.0) / 256.0) + 0.001953125) * 0.5) + 0.0;
+        uvLodMax.x = ((((uv.x * 255.0) / 256.0) + 0.001953125) * 0.5) + 0.0;
+        uvLodMax.y = ((((uv.y * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+    }
+    else
+    {
+        if (abs(lodMin - 1.0) < 0.001000000047497451305389404296875)
+        {
+            uvLodMin.x = ((((uv.x * 255.0) / 256.0) + 0.001953125) * 0.5) + 0.0;
+            uvLodMin.y = ((((uv.y * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+            uvLodMax.x = ((((uv.x * 255.0) / 256.0) + 0.001953125) * 0.5) + 0.5;
+            uvLodMax.y = ((((uv.y * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+        }
+        else
+        {
+            if (abs(lodMin - 2.0) < 0.001000000047497451305389404296875)
+            {
+                uvLodMin.x = ((((uv.x * 255.0) / 256.0) + 0.001953125) * 0.5) + 0.5;
+                uvLodMin.y = ((((uv.y * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+                uvLodMax.x = ((((uv.x * 255.0) / 256.0) + 0.001953125) * 0.5) + 0.0;
+                uvLodMax.y = ((((uv.y * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.75;
+            }
+            else
+            {
+                if (abs(lodMin - 3.0) < 0.001000000047497451305389404296875)
+                {
+                    uvLodMin.x = ((((uv.x * 255.0) / 256.0) + 0.001953125) * 0.5) + 0.0;
+                    uvLodMin.y = ((((uv.y * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.75;
+                    uvLodMax.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+                    uvLodMax.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.75;
+                }
+                else
+                {
+                    if (abs(lodMin - 4.0) < 0.001000000047497451305389404296875)
+                    {
+                        uvLodMin.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+                        uvLodMin.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.75;
+                        uvLodMax.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.75;
+                        uvLodMax.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.75;
+                    }
+                    else
+                    {
+                        if (abs(lodMin - 5.0) < 0.001000000047497451305389404296875)
+                        {
+                            uvLodMin.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.75;
+                            uvLodMin.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.75;
+                            uvLodMax.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+                            uvLodMax.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.875;
+                        }
+                        else
+                        {
+                            if (abs(lodMin - 6.0) < 0.001000000047497451305389404296875)
+                            {
+                                uvLodMin.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+                                uvLodMin.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.875;
+                                uvLodMax.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.75;
+                                uvLodMax.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.875;
+                            }
+                            else
+                            {
+                                if (abs(lodMin - 7.0) < 0.001000000047497451305389404296875)
+                                {
+                                    uvLodMin.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.75;
+                                    uvLodMin.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.875;
+                                    uvLodMax.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.75;
+                                    uvLodMax.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.875;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    vec4 envEncoded = mix(texture(panoramic, uvLodMin), texture(panoramic, uvLodMax), vec4(lodLerp));
+    return envEncoded.xyz / vec3(envEncoded.w);
+}
+
+vec3 SamplerEncodedPanoramic(mediump sampler2D panoramic, vec3 dir, float rotation, float lod)
+{
+    vec3 param = dir;
+    float param_1 = rotation;
+    vec2 _1237 = GetPanoramicTexCoordsFromDir(param, param_1);
+    vec2 uv = _1237;
+    vec2 param_2 = uv;
+    float param_3 = lod;
+    return SamplerEncodedPanoramicWithUV(panoramic, param_2, param_3);
+}
+
+vec3 GTAO_MultiBounce(float visibility, vec3 albedo)
+{
+    vec3 a = (albedo * 2.040400028228759765625) - vec3(0.3323999941349029541015625);
+    vec3 b = (albedo * (-4.79510021209716796875)) + vec3(0.6417000293731689453125);
+    vec3 c = (albedo * 2.755199909210205078125) + vec3(0.69029998779296875);
+    return max(vec3(visibility), ((((a * visibility) + b) * visibility) + c) * visibility);
+}
+
+vec3 Diffuse_Panoramic(SurfaceParams S, EnvironmentParams E, mediump sampler2D envTex)
+{
+    vec3 param = S.nDir;
+    float param_1 = E.rotation;
+    float param_2 = 7.0;
+    vec3 lighting = SamplerEncodedPanoramic(envTex, param, param_1, param_2);
+    float param_3 = S.occParams.x;
+    vec3 param_4 = S.diffCol;
+    vec3 multiBounceColor = GTAO_MultiBounce(param_3, param_4);
+    return ((lighting * S.diffCol) * multiBounceColor) * E.intensity;
+}
+
+vec3 EnvBRDFApprox(SurfaceParams S)
+{
+    float ndv = max(0.0, dot(S.nDir, S.vDir));
+    float perceptualRoughness = S.roughParams.x;
+    vec4 r = (vec4(-1.0, -0.0274999998509883880615234375, -0.572000026702880859375, 0.02199999988079071044921875) * perceptualRoughness) + vec4(1.0, 0.0425000004470348358154296875, 1.03999996185302734375, -0.039999999105930328369140625);
+    float a004 = (min(r.x * r.x, exp2((-9.27999973297119140625) * ndv)) * r.x) + r.y;
+    vec2 AB = (vec2(-1.03999996185302734375, 1.03999996185302734375) * a004) + r.zw;
+    float param = 50.0 * S.specCol.y;
+    AB.y *= saturate(param);
+    return (S.specCol * AB.x) + vec3(AB.y);
+}
+
+vec3 Specular_Panoramic(SurfaceParams S, EnvironmentParams E, mediump sampler2D envTex)
+{
+    vec3 dir = mix(S.rDir, S.nDir, vec3(S.roughParams.x * S.roughParams.y));
+    vec3 param = dir;
+    float param_1 = E.rotation;
+    float param_2 = (S.roughParams.x - 0.07999999821186065673828125) * 7.0;
+    vec3 specEnv = SamplerEncodedPanoramic(envTex, param, param_1, param_2);
+    SurfaceParams param_3 = S;
+    vec3 brdf = EnvBRDFApprox(param_3);
+    float param_4 = S.occParams.y;
+    vec3 param_5 = S.specCol;
+    vec3 multiBounceColor = GTAO_MultiBounce(param_4, param_5);
+    return ((brdf * specEnv) * multiBounceColor) * E.intensity;
+}
+
+vec3 Diffuse_OrenNayar(SurfaceParams S, LightParams L)
+{
+    vec3 hDir = normalize(L.lDir + S.vDir);
+    float ndl = max(0.0, dot(S.nDir, L.lDir));
+    float ndv = max(0.0, dot(S.nDir, S.vDir));
+    float vdh = max(0.0, dot(S.vDir, hDir));
+    float a = S.roughParams.y;
+    float s = a;
+    float s2 = s * s;
+    float VoL = ((2.0 * vdh) * vdh) - 1.0;
+    float Cosri = VoL - (ndv * ndl);
+    float C1 = 1.0 - ((0.5 * s2) / (s2 + 0.3300000131130218505859375));
+    float _425;
+    if (Cosri >= 0.0)
+    {
+        _425 = 1.0 / max(ndl, ndv);
+    }
+    else
+    {
+        _425 = 1.0;
+    }
+    float C2 = (((0.449999988079071044921875 * s2) / (s2 + 0.0900000035762786865234375)) * Cosri) * _425;
+    float lighting = ((C1 + C2) * (1.0 + (S.roughParams.x * 0.5))) * ndl;
+    return (((S.diffCol * L.color) * L.intensity) * L.attenuate) * lighting;
+}
+
+float V_SmithJointApprox(float a, float ndv, float ndl)
+{
+    float lambdaV = ndl * ((ndv * (1.0 - a)) + a);
+    float lambdaL = ndv * ((ndl * (1.0 - a)) + a);
+    return 0.5 / ((lambdaV + lambdaL) + 9.9999997473787516355514526367188e-06);
+}
+
+float D_GGX(float ndh, float a2)
+{
+    float d = (((ndh * a2) - ndh) * ndh) + 1.0;
+    return (a2 * 0.31830990314483642578125) / ((d * d) + 1.0000000116860974230803549289703e-07);
+}
+
+float Pow5(float x)
+{
+    float x2 = x * x;
+    return (x2 * x2) * x;
+}
+
+vec3 F_Schlick(vec3 f0, float vdh)
+{
+    float param = 1.0 - vdh;
+    float t = Pow5(param);
+    return f0 + ((vec3(1.0) - f0) * t);
+}
+
+vec3 Specular_GGX(SurfaceParams S, LightParams L)
+{
+    vec3 hDir = normalize(L.lDir + S.vDir);
+    float ndh = max(0.0, dot(S.nDir, hDir));
+    float vdh = max(0.0, dot(S.vDir, hDir));
+    float ndl = max(0.0, dot(S.nDir, L.lDir));
+    float ndv = max(0.0, dot(S.nDir, S.vDir));
+    float a = S.roughParams.y;
+    float a2 = S.roughParams.z;
+    float param = ndl;
+    float param_1 = ndv;
+    float param_2 = a;
+    float V = V_SmithJointApprox(param, param_1, param_2);
+    float param_3 = ndh;
+    float param_4 = a2;
+    float D = D_GGX(param_3, param_4);
+    vec3 param_5 = S.specCol;
+    float param_6 = vdh;
+    vec3 F = F_Schlick(param_5, param_6);
+    vec3 specular = ((((((F * V) * D) * 3.1415927410125732421875) * ndl) * L.color) * L.intensity) * L.attenuate;
+    return specular;
+}
+
+vec3 Diffuse_Lambert(SurfaceParams S, LightParams L)
+{
+    float ndl = max(0.0, dot(S.nDir, L.lDir));
+    float lighting = ndl;
+    return (((S.diffCol * L.color) * L.intensity) * L.attenuate) * lighting;
+}
+
+float V_Const()
+{
+    return 0.25;
+}
+
+vec3 Specular_GGX_Low(SurfaceParams S, LightParams L)
+{
+    vec3 hDir = normalize(L.lDir + S.vDir);
+    float ndh = max(0.0, dot(S.nDir, hDir));
+    float vdh = max(0.0, dot(S.vDir, hDir));
+    float ndl = max(0.0, dot(S.nDir, L.lDir));
+    float a = S.roughParams.y;
+    float a2 = S.roughParams.z;
+    float V = V_Const();
+    float param = ndh;
+    float param_1 = a2;
+    float D = D_GGX(param, param_1);
+    vec3 param_2 = S.specCol;
+    float param_3 = vdh;
+    vec3 F = F_Schlick(param_2, param_3);
+    vec3 specular = ((((((F * V) * D) * 3.1415927410125732421875) * ndl) * L.color) * L.intensity) * L.attenuate;
+    return specular;
+}
+
+vec3 EmissiveTerm(SurfaceParams S)
+{
+    return S.emissive;
+}
+
+vec3 Lighting(VSOutput V, SurfaceParams S, EnvironmentParams E, mediump sampler2D envTex, LightGroupParams LG)
+{
+    vec3 Fd = vec3(0.0);
+    vec3 Fr = vec3(0.0);
+    float coatAttenuate_IBL = 1.0;
+    SurfaceParams param = S;
+    EnvironmentParams param_1 = E;
+    Fd += (Diffuse_Panoramic(param, param_1, envTex) * coatAttenuate_IBL);
+    SurfaceParams param_2 = S;
+    EnvironmentParams param_3 = E;
+    Fr += (Specular_Panoramic(param_2, param_3, envTex) * coatAttenuate_IBL);
+    LightParams ML = LG.DirLights[0];
+    if (ML.enable > 0.5)
+    {
+        float coatAttenuate_ML = 1.0;
+        SurfaceParams param_4 = S;
+        LightParams param_5 = ML;
+        Fd += (Diffuse_OrenNayar(param_4, param_5) * coatAttenuate_ML);
+        SurfaceParams param_6 = S;
+        LightParams param_7 = ML;
+        Fr += (Specular_GGX(param_6, param_7) * coatAttenuate_ML);
+    }
+    LightParams DL = LG.DirLights[1];
+    if (DL.enable > 0.5)
+    {
+        float coatAttenuate_DL = 1.0;
+        SurfaceParams param_8 = S;
+        LightParams param_9 = DL;
+        Fd += (Diffuse_Lambert(param_8, param_9) * coatAttenuate_DL);
+        SurfaceParams param_10 = S;
+        LightParams param_11 = DL;
+        Fr += (Specular_GGX_Low(param_10, param_11) * coatAttenuate_DL);
+    }
+    DL = LG.DirLights[2];
+    if (DL.enable > 0.5)
+    {
+        float coatAttenuate_DL_1 = 1.0;
+        SurfaceParams param_12 = S;
+        LightParams param_13 = DL;
+        Fd += (Diffuse_Lambert(param_12, param_13) * coatAttenuate_DL_1);
+        SurfaceParams param_14 = S;
+        LightParams param_15 = DL;
+        Fr += (Specular_GGX_Low(param_14, param_15) * coatAttenuate_DL_1);
+    }
+    LightParams PL = LG.PointLights[0];
+    if (PL.enable > 0.5)
+    {
+        float coatAttenuate_PL = 1.0;
+        SurfaceParams param_16 = S;
+        LightParams param_17 = PL;
+        Fd += (Diffuse_Lambert(param_16, param_17) * coatAttenuate_PL);
+        SurfaceParams param_18 = S;
+        LightParams param_19 = PL;
+        Fr += (Specular_GGX_Low(param_18, param_19) * coatAttenuate_PL);
+    }
+    PL = LG.PointLights[1];
+    if (PL.enable > 0.5)
+    {
+        float coatAttenuate_PL_1 = 1.0;
+        SurfaceParams param_20 = S;
+        LightParams param_21 = PL;
+        Fd += (Diffuse_Lambert(param_20, param_21) * coatAttenuate_PL_1);
+        SurfaceParams param_22 = S;
+        LightParams param_23 = PL;
+        Fr += (Specular_GGX_Low(param_22, param_23) * coatAttenuate_PL_1);
+    }
+    LightParams SL = LG.SpotLights[0];
+    if (SL.enable > 0.5)
+    {
+        float coatAttenuate_SL = 1.0;
+        SurfaceParams param_24 = S;
+        LightParams param_25 = SL;
+        Fd += (Diffuse_Lambert(param_24, param_25) * coatAttenuate_SL);
+        SurfaceParams param_26 = S;
+        LightParams param_27 = SL;
+        Fr += (Specular_GGX_Low(param_26, param_27) * coatAttenuate_SL);
+    }
+    SL = LG.SpotLights[1];
+    if (SL.enable > 0.5)
+    {
+        float coatAttenuate_SL_1 = 1.0;
+        SurfaceParams param_28 = S;
+        LightParams param_29 = SL;
+        Fd += (Diffuse_Lambert(param_28, param_29) * coatAttenuate_SL_1);
+        SurfaceParams param_30 = S;
+        LightParams param_31 = SL;
+        Fr += (Specular_GGX_Low(param_30, param_31) * coatAttenuate_SL_1);
+    }
+    SurfaceParams param_32 = S;
+    Fd += EmissiveTerm(param_32);
+    vec3 finalRGB = Fd + Fr;
+    return finalRGB;
+}
+
+vec3 LinearToGamma(vec3 col)
+{
+    return vec3(pow(col.x, 0.4545449912548065185546875), pow(col.y, 0.4545449912548065185546875), pow(col.z, 0.4545449912548065185546875));
+}
+
+vec4 MainEntry(mediump sampler2D envTex, float envInt, float envRot, vec3 albedo, float opacity, float cutoff, vec3 normal, vec3 clearCoatNormal, float metallic, float roughness, float ao, float subsurface, vec3 subsurfaceCol, vec3 subsurfaceColMultiply, float ior, float transmittance, float transmittanceColorAtDistance, float thin, float clearCoat, float clearCoatRoughness, vec3 emissive, float anisotropic, float anisotropicRotate, float rampID, float rim, vec3 rimCol, vec3 ambient, vec3 matcap, float smoothFactor)
+{
+    VSOutput V = BuildVSOutput();
+    VSOutput param = V;
+    float param_1 = envInt;
+    float param_2 = envRot;
+    vec3 param_3 = albedo;
+    float param_4 = opacity;
+    float param_5 = cutoff;
+    vec3 param_6 = normal;
+    vec3 param_7 = clearCoatNormal;
+    float param_8 = metallic;
+    float param_9 = roughness;
+    float param_10 = ao;
+    float param_11 = subsurface;
+    vec3 param_12 = subsurfaceCol;
+    vec3 param_13 = subsurfaceColMultiply;
+    float param_14 = ior;
+    float param_15 = transmittance;
+    float param_16 = transmittanceColorAtDistance;
+    float param_17 = thin;
+    float param_18 = clearCoat;
+    float param_19 = clearCoatRoughness;
+    vec3 param_20 = emissive;
+    float param_21 = anisotropic;
+    float param_22 = anisotropicRotate;
+    float param_23 = rampID;
+    float param_24 = rim;
+    vec3 param_25 = rimCol;
+    vec3 param_26 = ambient;
+    vec3 param_27 = matcap;
+    float param_28 = smoothFactor;
+    SurfaceParams S = BuildSurfaceParams(param, param_1, param_2, param_3, param_4, param_5, param_6, param_7, param_8, param_9, param_10, param_11, param_12, param_13, param_14, param_15, param_16, param_17, param_18, param_19, param_20, param_21, param_22, param_23, param_24, param_25, param_26, param_27, param_28);
+    float param_29 = envInt;
+    float param_30 = envRot;
+    EnvironmentParams E = BuildEnvironmentParams(param_29, param_30);
+    SurfaceParams param_31 = S;
+    LightGroupParams LG = BuildLightGroupParams(param_31);
+    VSOutput param_32 = V;
+    SurfaceParams param_33 = S;
+    EnvironmentParams param_34 = E;
+    LightGroupParams param_35 = LG;
+    vec3 finalRGB = Lighting(param_32, param_33, param_34, envTex, param_35);
+    vec3 param_36 = finalRGB;
+    finalRGB = LinearToGamma(param_36);
+    vec4 result = vec4(finalRGB, S.opacity);
+    return result;
+}
+
+vec4 ApplyBlendMode(vec4 color, vec2 uv)
+{
+    vec4 ret = color;
+    return ret;
+}
 
 void main()
 {
-    mediump vec4 _2088 = texture(_AlbedoTexture, v_uv0);
-    vec3 _2094 = vec3(pow(_AlbedoColor.x, 2.2000000476837158203125), pow(_AlbedoColor.y, 2.2000000476837158203125), pow(_AlbedoColor.z, 2.2000000476837158203125)) * vec3(pow(_2088.x, 2.2000000476837158203125), pow(_2088.y, 2.2000000476837158203125), pow(_2088.z, 2.2000000476837158203125));
+    vec2 uv0 = v_uv0;
+    float envInt = _AmbientIntensity;
+    float envRot = _AmbientRotation;
+    vec3 param = _AlbedoColor.xyz;
+    vec3 albedo = GammaToLinear(param);
+    float opacity = _AlbedoColor.w;
+    vec4 t_AlbedoTex = texture(_AlbedoTexture, uv0);
+    vec3 param_1 = t_AlbedoTex.xyz;
+    albedo *= GammaToLinear(param_1);
+    opacity *= t_AlbedoTex.w;
+    float cutoff = u_Cutoff;
+    float metallic = _Metallic;
+    float roughness = _Roughness;
+    float ao = 1.0;
     vec3 _2112 = normalize(v_nDirWS);
-    mediump vec4 _2117 = texture(_EmissiveTexture, v_uv0);
-    float _2526 = clamp(_Metallic, 0.0, 1.0);
-    float _2425 = clamp(_Roughness, 0.07999999821186065673828125, 1.0);
-    float _2531 = _2425 * _2425;
-    float _2536 = _2531 * _2531;
-    vec3 _2449 = _2094 * (0.959999978542327880859375 * (1.0 - _2526));
-    vec3 _2456 = mix(vec3(0.039999999105930328369140625), _2094, vec3(_2526));
-    vec3 _2491 = normalize(u_WorldSpaceCameraPos.xyz - v_posWS);
-    vec3 _6599;
-    if (dot(_2491, _2112) < 0.0)
-    {
-        _6599 = reflect(_2491, _2112);
-    }
-    else
-    {
-        _6599 = _2491;
-    }
-    vec3 _2517 = normalize(reflect(-_6599, _2112));
-    float _2559 = max(0.0, dot(_2112, _6599));
-    float _2582 = min(1.0 + dot(_2517, _2112), 1.0);
-    float _2588 = clamp(pow(_2559 + 1.0, exp2((-16.0) * _2425 + (-1.0))), 0.0, 1.0) * (_2582 * _2582);
-    float _2652 = u_DirLightsEnabled[0] * step(0.5, u_DirLightNum);
-    vec3 _2659 = normalize(-u_DirLightsDirection[0].xyz);
-    float _2671 = u_DirLightsIntensity[0] * _2652;
-    float _2686 = u_DirLightsEnabled[1] * step(1.5, u_DirLightNum);
-    vec3 _2693 = normalize(-u_DirLightsDirection[1].xyz);
-    float _2705 = u_DirLightsIntensity[1] * _2686;
-    float _2720 = u_DirLightsEnabled[2] * step(2.5, u_DirLightNum);
-    vec3 _2727 = normalize(-u_DirLightsDirection[2].xyz);
-    float _2739 = u_DirLightsIntensity[2] * _2720;
-    float _2761 = u_PointLightsEnabled[0] * step(0.5, u_PointLightNum);
-    vec3 _2769 = u_PointLightsPosition[0].xyz - v_posWS;
-    float _2771 = length(_2769);
-    vec3 _2775 = _2769 / vec3(_2771);
-    float _2787 = u_PointLightsIntensity[0] * _2761;
-    float _2793 = _2771 * u_PointLightsAttenRangeInv[0];
-    float _2815 = _2793 * _2793;
-    float _2822 = clamp((-_2815) * _2815 + 1.0, 0.0, 1.0);
-    vec3 _2807 = vec3(((_2822 * _2822) * (_2793 * _2793 + 1.0)) * 0.25);
-    float _2851 = u_PointLightsEnabled[1] * step(1.5, u_PointLightNum);
-    vec3 _2859 = u_PointLightsPosition[1].xyz - v_posWS;
-    float _2861 = length(_2859);
-    vec3 _2865 = _2859 / vec3(_2861);
-    float _2877 = u_PointLightsIntensity[1] * _2851;
-    float _2883 = _2861 * u_PointLightsAttenRangeInv[1];
-    float _2905 = _2883 * _2883;
-    float _2912 = clamp((-_2905) * _2905 + 1.0, 0.0, 1.0);
-    vec3 _2897 = vec3(((_2912 * _2912) * (_2883 * _2883 + 1.0)) * 0.25);
-    float _2943 = u_SpotLightsEnabled[0] * step(0.5, u_SpotLightNum);
-    vec3 _2951 = u_SpotLightsPosition[0].xyz - v_posWS;
-    float _2953 = length(_2951);
-    vec3 _2957 = _2951 / vec3(_2953);
-    float _2969 = u_SpotLightsIntensity[0] * _2943;
-    float _2975 = _2953 * u_SpotLightsAttenRangeInv[0];
-    float _3018 = _2975 * _2975;
-    float _3025 = clamp((-_3018) * _3018 + 1.0, 0.0, 1.0);
-    vec3 _3010 = vec3((((_3025 * _3025) * (_2975 * _2975 + 1.0)) * 0.25) * smoothstep(u_SpotLightsOuterAngleCos[0], u_SpotLightsInnerAngleCos[0], max(0.0, dot(_2957, normalize(-u_SpotLightsDirection[0].xyz)))));
-    float _3056 = u_SpotLightsEnabled[1] * step(1.5, u_SpotLightNum);
-    vec3 _3064 = u_SpotLightsPosition[1].xyz - v_posWS;
-    float _3066 = length(_3064);
-    vec3 _3070 = _3064 / vec3(_3066);
-    float _3082 = u_SpotLightsIntensity[1] * _3056;
-    float _3088 = _3066 * u_SpotLightsAttenRangeInv[1];
-    float _3131 = _3088 * _3088;
-    float _3138 = clamp((-_3131) * _3131 + 1.0, 0.0, 1.0);
-    vec3 _3123 = vec3((((_3138 * _3138) * (_3088 * _3088 + 1.0)) * 0.25) * smoothstep(u_SpotLightsOuterAngleCos[1], u_SpotLightsInnerAngleCos[1], max(0.0, dot(_3070, normalize(-u_SpotLightsDirection[1].xyz)))));
-    vec3 _3415 = normalize(_2112);
-    float _3418 = -_3415.z;
-    float _3420 = _3415.x;
-    float _3427 = acos(_3415.y);
-    float _3433 = (((_3420 < 0.0) ? (-1.0) : 1.0) * acos(clamp(_3418 / length(vec2(_3420, _3418)), -1.0, 1.0)) + (-1.57079637050628662109375)) * 0.15915493667125701904296875 + _AmbientRotation;
-    float _3442 = fract((_3433 + floor(_3433)) + 1.0);
-    vec2 _6358 = vec2(_6766, _3427 * 0.3183098733425140380859375);
-    _6358.x = _3442;
-    float _3470 = floor(7.0);
-    vec2 _6606;
-    vec2 _6614;
-    if (abs(_3470) < 0.001000000047497451305389404296875)
-    {
-        _6614 = vec2((_3442 * 0.99609375 + 0.001953125) * 0.5, (_3427 * 0.315823078155517578125 + 0.00390625) * 0.25 + 0.5);
-        _6606 = vec2(_3442 * 0.998046875 + 0.0009765625, (_3427 * 0.3170664608478546142578125 + 0.001953125) * 0.5);
-    }
-    else
-    {
-        vec2 _6607;
-        vec2 _6615;
-        if (abs(_3470 - 1.0) < 0.001000000047497451305389404296875)
-        {
-            float _3523 = _3442 * 0.99609375 + 0.001953125;
-            float _3533 = (_3427 * 0.315823078155517578125 + 0.00390625) * 0.25 + 0.5;
-            _6615 = vec2(_3523 * 0.5 + 0.5, _3533);
-            _6607 = vec2(_3523 * 0.5, _3533);
-        }
-        else
-        {
-            vec2 _6608;
-            vec2 _6616;
-            if (abs(_3470 - 2.0) < 0.001000000047497451305389404296875)
-            {
-                float _3561 = _3442 * 0.99609375 + 0.001953125;
-                float _3569 = _3427 * 0.315823078155517578125 + 0.00390625;
-                _6616 = vec2(_3561 * 0.5, _3569 * 0.25 + 0.75);
-                _6608 = vec2(_3561 * 0.5 + 0.5, _3569 * 0.25 + 0.5);
-            }
-            else
-            {
-                vec2 _6609;
-                vec2 _6617;
-                if (abs(_3470 - 3.0) < 0.001000000047497451305389404296875)
-                {
-                    _6617 = vec2((_3442 * 0.9921875 + 0.00390625) * 0.25 + 0.5, (_3427 * 0.3133362829685211181640625 + 0.0078125) * 0.125 + 0.75);
-                    _6609 = vec2((_3442 * 0.99609375 + 0.001953125) * 0.5, (_3427 * 0.315823078155517578125 + 0.00390625) * 0.25 + 0.75);
-                }
-                else
-                {
-                    vec2 _6610;
-                    vec2 _6618;
-                    if (abs(_3470 - 4.0) < 0.001000000047497451305389404296875)
-                    {
-                        float _3637 = _3442 * 0.9921875 + 0.00390625;
-                        float _3647 = (_3427 * 0.3133362829685211181640625 + 0.0078125) * 0.125 + 0.75;
-                        _6618 = vec2(_3637 * 0.25 + 0.75, _3647);
-                        _6610 = vec2(_3637 * 0.25 + 0.5, _3647);
-                    }
-                    else
-                    {
-                        vec2 _6611;
-                        vec2 _6619;
-                        if (abs(_3470 - 5.0) < 0.001000000047497451305389404296875)
-                        {
-                            float _3675 = _3442 * 0.9921875 + 0.00390625;
-                            float _3683 = _3427 * 0.3133362829685211181640625 + 0.0078125;
-                            _6619 = vec2(_3675 * 0.25 + 0.5, _3683 * 0.125 + 0.875);
-                            _6611 = vec2(_3675 * 0.25 + 0.75, _3683 * 0.125 + 0.75);
-                        }
-                        else
-                        {
-                            vec2 _6612;
-                            vec2 _6620;
-                            if (abs(_3470 - 6.0) < 0.001000000047497451305389404296875)
-                            {
-                                float _3713 = _3442 * 0.9921875 + 0.00390625;
-                                float _3723 = (_3427 * 0.3133362829685211181640625 + 0.0078125) * 0.125 + 0.875;
-                                _6620 = vec2(_3713 * 0.25 + 0.75, _3723);
-                                _6612 = vec2(_3713 * 0.25 + 0.5, _3723);
-                            }
-                            else
-                            {
-                                vec2 _6621;
-                                if (abs(_3470 - 7.0) < 0.001000000047497451305389404296875)
-                                {
-                                    _6621 = vec2((_3442 * 0.9921875 + 0.00390625) * 0.25 + 0.75, (_3427 * 0.3133362829685211181640625 + 0.0078125) * 0.125 + 0.875);
-                                }
-                                else
-                                {
-                                    _6621 = _6358;
-                                }
-                                _6620 = _6621;
-                                _6612 = _6621;
-                            }
-                            _6619 = _6620;
-                            _6611 = _6612;
-                        }
-                        _6618 = _6619;
-                        _6610 = _6611;
-                    }
-                    _6617 = _6618;
-                    _6609 = _6610;
-                }
-                _6616 = _6617;
-                _6608 = _6609;
-            }
-            _6615 = _6616;
-            _6607 = _6608;
-        }
-        _6614 = _6615;
-        _6606 = _6607;
-    }
-    mediump vec4 _3789 = texture(_AmbientTexture, _6606);
-    mediump vec4 _3792 = texture(_AmbientTexture, _6614);
-    vec4 _3795 = mix(_3789, _3792, vec4(7.0 - _3470));
-    vec3 _3203 = ((((_3795.xyz / vec3(_3795.w)) * _2449) * max(vec3(1.0), ((((((_2449 * 2.040400028228759765625) - vec3(0.3323999941349029541015625)) * 1.0) + ((_2449 * (-4.79510021209716796875)) + vec3(0.6417000293731689453125))) * 1.0) + ((_2449 * 2.755199909210205078125) + vec3(0.69029998779296875))) * 1.0)) * _AmbientIntensity) * 1.0;
-    float _3858 = _2425 - 0.07999999821186065673828125;
-    vec3 _3898 = normalize(mix(_2517, _2112, vec3(_2425 * _2531)));
-    float _3901 = -_3898.z;
-    float _3903 = _3898.x;
-    float _3910 = acos(_3898.y);
-    float _3916 = (((_3903 < 0.0) ? (-1.0) : 1.0) * acos(clamp(_3901 / length(vec2(_3903, _3901)), -1.0, 1.0)) + (-1.57079637050628662109375)) * 0.15915493667125701904296875 + _AmbientRotation;
-    float _3925 = fract((_3916 + floor(_3916)) + 1.0);
-    vec2 _6473 = vec2(_6766, _3910 * 0.3183098733425140380859375);
-    _6473.x = _3925;
-    float _3953 = floor(_3858 * 7.0);
-    vec2 _6639;
-    vec2 _6647;
-    if (abs(_3953) < 0.001000000047497451305389404296875)
-    {
-        _6647 = vec2((_3925 * 0.99609375 + 0.001953125) * 0.5, (_3910 * 0.315823078155517578125 + 0.00390625) * 0.25 + 0.5);
-        _6639 = vec2(_3925 * 0.998046875 + 0.0009765625, (_3910 * 0.3170664608478546142578125 + 0.001953125) * 0.5);
-    }
-    else
-    {
-        vec2 _6640;
-        vec2 _6648;
-        if (abs(_3953 - 1.0) < 0.001000000047497451305389404296875)
-        {
-            float _4006 = _3925 * 0.99609375 + 0.001953125;
-            float _4016 = (_3910 * 0.315823078155517578125 + 0.00390625) * 0.25 + 0.5;
-            _6648 = vec2(_4006 * 0.5 + 0.5, _4016);
-            _6640 = vec2(_4006 * 0.5, _4016);
-        }
-        else
-        {
-            vec2 _6641;
-            vec2 _6649;
-            if (abs(_3953 - 2.0) < 0.001000000047497451305389404296875)
-            {
-                float _4044 = _3925 * 0.99609375 + 0.001953125;
-                float _4052 = _3910 * 0.315823078155517578125 + 0.00390625;
-                _6649 = vec2(_4044 * 0.5, _4052 * 0.25 + 0.75);
-                _6641 = vec2(_4044 * 0.5 + 0.5, _4052 * 0.25 + 0.5);
-            }
-            else
-            {
-                vec2 _6642;
-                vec2 _6650;
-                if (abs(_3953 - 3.0) < 0.001000000047497451305389404296875)
-                {
-                    _6650 = vec2((_3925 * 0.9921875 + 0.00390625) * 0.25 + 0.5, (_3910 * 0.3133362829685211181640625 + 0.0078125) * 0.125 + 0.75);
-                    _6642 = vec2((_3925 * 0.99609375 + 0.001953125) * 0.5, (_3910 * 0.315823078155517578125 + 0.00390625) * 0.25 + 0.75);
-                }
-                else
-                {
-                    vec2 _6643;
-                    vec2 _6651;
-                    if (abs(_3953 - 4.0) < 0.001000000047497451305389404296875)
-                    {
-                        float _4120 = _3925 * 0.9921875 + 0.00390625;
-                        float _4130 = (_3910 * 0.3133362829685211181640625 + 0.0078125) * 0.125 + 0.75;
-                        _6651 = vec2(_4120 * 0.25 + 0.75, _4130);
-                        _6643 = vec2(_4120 * 0.25 + 0.5, _4130);
-                    }
-                    else
-                    {
-                        vec2 _6644;
-                        vec2 _6652;
-                        if (abs(_3953 - 5.0) < 0.001000000047497451305389404296875)
-                        {
-                            float _4158 = _3925 * 0.9921875 + 0.00390625;
-                            float _4166 = _3910 * 0.3133362829685211181640625 + 0.0078125;
-                            _6652 = vec2(_4158 * 0.25 + 0.5, _4166 * 0.125 + 0.875);
-                            _6644 = vec2(_4158 * 0.25 + 0.75, _4166 * 0.125 + 0.75);
-                        }
-                        else
-                        {
-                            vec2 _6645;
-                            vec2 _6653;
-                            if (abs(_3953 - 6.0) < 0.001000000047497451305389404296875)
-                            {
-                                float _4196 = _3925 * 0.9921875 + 0.00390625;
-                                float _4206 = (_3910 * 0.3133362829685211181640625 + 0.0078125) * 0.125 + 0.875;
-                                _6653 = vec2(_4196 * 0.25 + 0.75, _4206);
-                                _6645 = vec2(_4196 * 0.25 + 0.5, _4206);
-                            }
-                            else
-                            {
-                                vec2 _6654;
-                                if (abs(_3953 - 7.0) < 0.001000000047497451305389404296875)
-                                {
-                                    _6654 = vec2((_3925 * 0.9921875 + 0.00390625) * 0.25 + 0.75, (_3910 * 0.3133362829685211181640625 + 0.0078125) * 0.125 + 0.875);
-                                }
-                                else
-                                {
-                                    _6654 = _6473;
-                                }
-                                _6653 = _6654;
-                                _6645 = _6654;
-                            }
-                            _6652 = _6653;
-                            _6644 = _6645;
-                        }
-                        _6651 = _6652;
-                        _6643 = _6644;
-                    }
-                    _6650 = _6651;
-                    _6642 = _6643;
-                }
-                _6649 = _6650;
-                _6641 = _6642;
-            }
-            _6648 = _6649;
-            _6640 = _6641;
-        }
-        _6647 = _6648;
-        _6639 = _6640;
-    }
-    vec4 _4278 = mix(texture(_AmbientTexture, _6639), texture(_AmbientTexture, _6647), vec4(_3858 * 7.0 + (-_3953)));
-    vec4 _4303 = (vec4(-1.0, -0.0274999998509883880615234375, -0.572000026702880859375, 0.02199999988079071044921875) * _2425) + vec4(1.0, 0.0425000004470348358154296875, 1.03999996185302734375, -0.039999999105930328369140625);
-    float _4305 = _4303.x;
-    vec2 _4323 = (vec2(-1.03999996185302734375, 1.03999996185302734375) * (min(_4305 * _4305, exp2((-9.27999973297119140625) * _2559)) * _4305 + _4303.y)) + _4303.zw;
-    vec3 _3210 = (((((_2456 * _4323.x) + vec3(_4323.y * clamp(50.0 * _2456.y, 0.0, 1.0))) * (_4278.xyz / vec3(_4278.w))) * max(vec3(_2588), ((((((_2456 * 2.040400028228759765625) - vec3(0.3323999941349029541015625)) * _2588) + ((_2456 * (-4.79510021209716796875)) + vec3(0.6417000293731689453125))) * _2588) + ((_2456 * 2.755199909210205078125) + vec3(0.69029998779296875))) * _2588)) * _AmbientIntensity) * 1.0;
-    vec3 _6682;
-    vec3 _6683;
-    if (_2652 > 0.5)
-    {
-        vec3 _4396 = normalize(_2659 + _6599);
-        float _4402 = max(0.0, dot(_2112, _2659));
-        float _4413 = max(0.0, dot(_6599, _4396));
-        float _4429 = (-_2559) * _4402 + ((2.0 * _4413) * _4413 + (-1.0));
-        float _6671;
-        if (_4429 >= 0.0)
-        {
-            _6671 = 1.0 / max(_4402, _2559);
-        }
-        else
-        {
-            _6671 = 1.0;
-        }
-        float _4507 = max(0.0, dot(_2112, _4396));
-        float _4565 = 1.0 - _4402;
-        float _4593 = (_4507 * _2536 + (-_4507)) * _4507 + 1.0;
-        float _4606 = 1.0 - _4413;
-        float _4620 = _4606 * _4606;
-        _6683 = _3210 + ((((((((_2456 + ((vec3(1.0) - _2456) * ((_4620 * _4620) * _4606))) * (0.5 / ((_2531 * (_2559 * _4565 + _4402) + (_2559 * (_2531 * _4565 + _4402))) + 9.9999997473787516355514526367188e-06))) * ((_2536 * 0.31830990314483642578125) / (_4593 * _4593 + 1.0000000116860974230803549289703e-07))) * 3.1415927410125732421875) * _4402) * u_DirLightsColor[0].xyz) * _2671) * 1.0);
-        _6682 = _3203 + ((((_2449 * u_DirLightsColor[0].xyz) * _2671) * ((((((0.449999988079071044921875 * _2536) / (_2531 * _2531 + 0.0900000035762786865234375)) * _4429) * _6671 + (1.0 - ((0.5 * _2536) / (_2531 * _2531 + 0.3300000131130218505859375)))) * (_2425 * 0.5 + 1.0)) * _4402)) * 1.0);
-    }
-    else
-    {
-        _6683 = _3210;
-        _6682 = _3203;
-    }
-    vec3 _6684;
-    vec3 _6685;
-    if (_2686 > 0.5)
-    {
-        float _4635 = max(0.0, dot(_2112, _2693));
-        vec3 _4671 = normalize(_2693 + _6599);
-        float _4676 = max(0.0, dot(_2112, _4671));
-        float _4730 = (_4676 * _2536 + (-_4676)) * _4676 + 1.0;
-        float _4743 = 1.0 - max(0.0, dot(_6599, _4671));
-        float _4757 = _4743 * _4743;
-        _6685 = _6683 + ((((((((_2456 + ((vec3(1.0) - _2456) * ((_4757 * _4757) * _4743))) * 0.25) * ((_2536 * 0.31830990314483642578125) / (_4730 * _4730 + 1.0000000116860974230803549289703e-07))) * 3.1415927410125732421875) * _4635) * u_DirLightsColor[1].xyz) * _2705) * 1.0);
-        _6684 = _6682 + ((((_2449 * u_DirLightsColor[1].xyz) * _2705) * _4635) * 1.0);
-    }
-    else
-    {
-        _6685 = _6683;
-        _6684 = _6682;
-    }
-    vec3 _6686;
-    vec3 _6687;
-    if (_2720 > 0.5)
-    {
-        float _4772 = max(0.0, dot(_2112, _2727));
-        vec3 _4808 = normalize(_2727 + _6599);
-        float _4813 = max(0.0, dot(_2112, _4808));
-        float _4867 = (_4813 * _2536 + (-_4813)) * _4813 + 1.0;
-        float _4880 = 1.0 - max(0.0, dot(_6599, _4808));
-        float _4894 = _4880 * _4880;
-        _6687 = _6685 + ((((((((_2456 + ((vec3(1.0) - _2456) * ((_4894 * _4894) * _4880))) * 0.25) * ((_2536 * 0.31830990314483642578125) / (_4867 * _4867 + 1.0000000116860974230803549289703e-07))) * 3.1415927410125732421875) * _4772) * u_DirLightsColor[2].xyz) * _2739) * 1.0);
-        _6686 = _6684 + ((((_2449 * u_DirLightsColor[2].xyz) * _2739) * _4772) * 1.0);
-    }
-    else
-    {
-        _6687 = _6685;
-        _6686 = _6684;
-    }
-    vec3 _6688;
-    vec3 _6689;
-    if (_2761 > 0.5)
-    {
-        float _4909 = max(0.0, dot(_2112, _2775));
-        vec3 _4945 = normalize(_2775 + _6599);
-        float _4950 = max(0.0, dot(_2112, _4945));
-        float _5004 = (_4950 * _2536 + (-_4950)) * _4950 + 1.0;
-        float _5017 = 1.0 - max(0.0, dot(_6599, _4945));
-        float _5031 = _5017 * _5017;
-        _6689 = _6687 + (((((((((_2456 + ((vec3(1.0) - _2456) * ((_5031 * _5031) * _5017))) * 0.25) * ((_2536 * 0.31830990314483642578125) / (_5004 * _5004 + 1.0000000116860974230803549289703e-07))) * 3.1415927410125732421875) * _4909) * u_PointLightsColor[0].xyz) * _2787) * _2807) * 1.0);
-        _6688 = _6686 + (((((_2449 * u_PointLightsColor[0].xyz) * _2787) * _2807) * _4909) * 1.0);
-    }
-    else
-    {
-        _6689 = _6687;
-        _6688 = _6686;
-    }
-    vec3 _6690;
-    vec3 _6691;
-    if (_2851 > 0.5)
-    {
-        float _5046 = max(0.0, dot(_2112, _2865));
-        vec3 _5082 = normalize(_2865 + _6599);
-        float _5087 = max(0.0, dot(_2112, _5082));
-        float _5141 = (_5087 * _2536 + (-_5087)) * _5087 + 1.0;
-        float _5154 = 1.0 - max(0.0, dot(_6599, _5082));
-        float _5168 = _5154 * _5154;
-        _6691 = _6689 + (((((((((_2456 + ((vec3(1.0) - _2456) * ((_5168 * _5168) * _5154))) * 0.25) * ((_2536 * 0.31830990314483642578125) / (_5141 * _5141 + 1.0000000116860974230803549289703e-07))) * 3.1415927410125732421875) * _5046) * u_PointLightsColor[1].xyz) * _2877) * _2897) * 1.0);
-        _6690 = _6688 + (((((_2449 * u_PointLightsColor[1].xyz) * _2877) * _2897) * _5046) * 1.0);
-    }
-    else
-    {
-        _6691 = _6689;
-        _6690 = _6688;
-    }
-    vec3 _6692;
-    vec3 _6693;
-    if (_2943 > 0.5)
-    {
-        float _5183 = max(0.0, dot(_2112, _2957));
-        vec3 _5219 = normalize(_2957 + _6599);
-        float _5224 = max(0.0, dot(_2112, _5219));
-        float _5278 = (_5224 * _2536 + (-_5224)) * _5224 + 1.0;
-        float _5291 = 1.0 - max(0.0, dot(_6599, _5219));
-        float _5305 = _5291 * _5291;
-        _6693 = _6691 + (((((((((_2456 + ((vec3(1.0) - _2456) * ((_5305 * _5305) * _5291))) * 0.25) * ((_2536 * 0.31830990314483642578125) / (_5278 * _5278 + 1.0000000116860974230803549289703e-07))) * 3.1415927410125732421875) * _5183) * u_SpotLightsColor[0].xyz) * _2969) * _3010) * 1.0);
-        _6692 = _6690 + (((((_2449 * u_SpotLightsColor[0].xyz) * _2969) * _3010) * _5183) * 1.0);
-    }
-    else
-    {
-        _6693 = _6691;
-        _6692 = _6690;
-    }
-    vec3 _6694;
-    vec3 _6695;
-    if (_3056 > 0.5)
-    {
-        float _5320 = max(0.0, dot(_2112, _3070));
-        vec3 _5356 = normalize(_3070 + _6599);
-        float _5361 = max(0.0, dot(_2112, _5356));
-        float _5415 = (_5361 * _2536 + (-_5361)) * _5361 + 1.0;
-        float _5428 = 1.0 - max(0.0, dot(_6599, _5356));
-        float _5442 = _5428 * _5428;
-        _6695 = _6693 + (((((((((_2456 + ((vec3(1.0) - _2456) * ((_5442 * _5442) * _5428))) * 0.25) * ((_2536 * 0.31830990314483642578125) / (_5415 * _5415 + 1.0000000116860974230803549289703e-07))) * 3.1415927410125732421875) * _5320) * u_SpotLightsColor[1].xyz) * _3082) * _3123) * 1.0);
-        _6694 = _6692 + (((((_2449 * u_SpotLightsColor[1].xyz) * _3082) * _3123) * _5320) * 1.0);
-    }
-    else
-    {
-        _6695 = _6693;
-        _6694 = _6692;
-    }
-    vec3 _3366 = (_6694 + ((vec3(pow(_EmissiveColor.x, 2.2000000476837158203125), pow(_EmissiveColor.y, 2.2000000476837158203125), pow(_EmissiveColor.z, 2.2000000476837158203125)) * vec3(pow(_2117.x, 2.2000000476837158203125), pow(_2117.y, 2.2000000476837158203125), pow(_2117.z, 2.2000000476837158203125))) * _EmissiveIntensity)) + _6695;
-    glResult = vec4(pow(_3366.x, 0.4545449912548065185546875), pow(_3366.y, 0.4545449912548065185546875), pow(_3366.z, 0.4545449912548065185546875), _AlbedoColor.w * _2088.w);
+    vec3 clearCoatNormal = _2112;
+    vec3 normal = _2112;
+    vec4 t_EmissiveTex = texture(_EmissiveTexture, uv0);
+    vec3 param_2 = _EmissiveColor.xyz;
+    vec3 param_3 = t_EmissiveTex.xyz;
+    vec3 emissive = (GammaToLinear(param_2) * GammaToLinear(param_3)) * _EmissiveIntensity;
+    float param_4 = envInt;
+    float param_5 = envRot;
+    vec3 param_6 = albedo;
+    float param_7 = opacity;
+    float param_8 = cutoff;
+    vec3 param_9 = normal;
+    vec3 param_10 = clearCoatNormal;
+    float param_11 = metallic;
+    float param_12 = roughness;
+    float param_13 = ao;
+    float subsurface;
+    float param_14 = subsurface;
+    vec3 subsurfaceCol;
+    vec3 param_15 = subsurfaceCol;
+    vec3 subsurfaceColMultiply;
+    vec3 param_16 = subsurfaceColMultiply;
+    float ior;
+    float param_17 = ior;
+    float transmittance;
+    float param_18 = transmittance;
+    float transmittanceColorAtDistance;
+    float param_19 = transmittanceColorAtDistance;
+    float thin;
+    float param_20 = thin;
+    float clearCoat;
+    float param_21 = clearCoat;
+    float clearCoatRoughness;
+    float param_22 = clearCoatRoughness;
+    vec3 param_23 = emissive;
+    float anisotropic;
+    float param_24 = anisotropic;
+    float anisotropicRotate;
+    float param_25 = anisotropicRotate;
+    float rampID;
+    float param_26 = rampID;
+    float rim;
+    float param_27 = rim;
+    vec3 rimCol;
+    vec3 param_28 = rimCol;
+    vec3 ambient;
+    vec3 param_29 = ambient;
+    vec3 matcap;
+    vec3 param_30 = matcap;
+    float smoothFactor;
+    float param_31 = smoothFactor;
+    vec4 finalColor = MainEntry(_AmbientTexture, param_4, param_5, param_6, param_7, param_8, param_9, param_10, param_11, param_12, param_13, param_14, param_15, param_16, param_17, param_18, param_19, param_20, param_21, param_22, param_23, param_24, param_25, param_26, param_27, param_28, param_29, param_30, param_31);
+    vec4 proj_pos = u_VP * vec4(v_posWS, 1.0);
+    vec2 ndc_coord = proj_pos.xy / vec2(proj_pos.w);
+    vec2 screen_coord = (ndc_coord * 0.5) + vec2(0.5);
+    vec4 param_32 = finalColor;
+    vec2 param_33 = screen_coord;
+    glResult = ApplyBlendMode(param_32, param_33);
 }
 

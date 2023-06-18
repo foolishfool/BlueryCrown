@@ -6,6 +6,7 @@ layout(location = 0) in vec3 attPosition;
 
 void main()
 {
-    gl_Position = u_MVP * vec4(attPosition, 1.0);
+    vec4 homogeneous_pos = vec4(attPosition, 1.0);
+    gl_Position = u_MVP * homogeneous_pos;
 }
 

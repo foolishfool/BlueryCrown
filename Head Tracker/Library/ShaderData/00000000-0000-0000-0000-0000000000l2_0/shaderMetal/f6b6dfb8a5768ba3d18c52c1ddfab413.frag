@@ -10,13 +10,14 @@ struct main0_out
 
 struct main0_in
 {
-    float2 screenUV [[user(locn0)]];
+    float2 screenUV;
 };
 
 fragment main0_out main0(main0_in in [[stage_in]], texture2d<float> u_FBOTexture [[texture(0)]], sampler u_FBOTextureSmplr [[sampler(0)]])
 {
     main0_out out = {};
-    out.o_FragColor = u_FBOTexture.sample(u_FBOTextureSmplr, in.screenUV);
+    float4 finalColor = u_FBOTexture.sample(u_FBOTextureSmplr, in.screenUV);
+    out.o_FragColor = finalColor;
     return out;
 }
 

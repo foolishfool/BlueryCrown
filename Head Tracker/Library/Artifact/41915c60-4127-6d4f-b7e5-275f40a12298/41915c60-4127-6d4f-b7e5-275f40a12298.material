@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Occlusion Plane
-guid: {a: 13855312684863798047, b: 14292277264073529754}
+guid: {a: 5512118068352819499, b: 18146909164843898754}
 xshader: {localId: 1, path: 41915c60-4127-6d4f-b7e5-275f40a12298--41915c60-4127-6d4f-b7e5-275f40a12298.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 14864487640216634245, b: 582160934369185927}
+  guid: {a: 5449980296907056944, b: 4072427286695551361}
   floatmap:
     __class: Map
     _Cutoff: 0

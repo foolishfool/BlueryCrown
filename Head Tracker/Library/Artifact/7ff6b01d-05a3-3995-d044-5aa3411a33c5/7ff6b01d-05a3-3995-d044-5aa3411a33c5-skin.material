@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Veronica_Mars
-guid: {a: 3837170807647446011, b: 3333374851441483155}
+guid: {a: 5261114428575621590, b: 18183385711748818579}
 xshader: {localId: 1, path: 7ff6b01d-05a3-3995-d044-5aa3411a33c5--7ff6b01d-05a3-3995-d044-5aa3411a33c5.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 11837948881239697657, b: 18130665465119489415}
+  guid: {a: 5484445599857584157, b: 11430315067810571433}
   floatmap:
     __class: Map
     _AmbientIntensity: 1

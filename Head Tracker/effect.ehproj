@@ -1,6 +1,6 @@
 {
   "name": "Stan",
-  "lastModified": "Sun, 18 Jun 2023 01:23:07 GMT",
+  "lastModified": "Sun, 18 Jun 2023 09:58:35 GMT",
   "version": "2.5.2",
   "internalVersion": "1.4.0",
   "toolName": "Effect House",
@@ -77,8 +77,8 @@
     "63": "Layer 63"
   },
   "durationToCreate": 0,
-  "durationCreation": 29995971,
-  "durationBackground": 9003663,
+  "durationCreation": 42798460,
+  "durationBackground": 10999373,
   "effectHint": "tap_to_change",
   "templateID": "templateID_none",
   "templateName": "",

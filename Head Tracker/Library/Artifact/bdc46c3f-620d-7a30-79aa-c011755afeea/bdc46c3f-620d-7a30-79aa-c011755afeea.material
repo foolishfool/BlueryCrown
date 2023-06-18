@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Bel-Air
-guid: {a: 10250644362798326803, b: 5216003853760193953}
+guid: {a: 5459954286493021267, b: 3926930142621548216}
 xshader: {localId: 1, path: bdc46c3f-620d-7a30-79aa-c011755afeea--bdc46c3f-620d-7a30-79aa-c011755afeea.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 2184173140432352111, b: 12989745442297606815}
+  guid: {a: 5005430889385216540, b: 1614254825654759583}
   floatmap:
     __class: Map
     _AmbientIntensity: 1

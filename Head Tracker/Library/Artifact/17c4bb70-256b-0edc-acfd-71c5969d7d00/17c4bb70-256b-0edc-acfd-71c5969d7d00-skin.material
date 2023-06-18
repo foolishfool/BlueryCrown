@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Bump
-guid: {a: 4415981000113317038, b: 8585719721970489267}
+guid: {a: 5096153730738396516, b: 13419179646310591621}
 xshader: {localId: 1, path: 17c4bb70-256b-0edc-acfd-71c5969d7d00--17c4bb70-256b-0edc-acfd-71c5969d7d00.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 16233044343015986268, b: 17349505001108507810}
+  guid: {a: 5197135334107150468, b: 15355387906126302628}
   floatmap:
     __class: Map
     _AmbientIntensity: 1

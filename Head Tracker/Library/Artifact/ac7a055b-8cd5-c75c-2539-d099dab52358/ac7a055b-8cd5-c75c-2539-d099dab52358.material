@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Gangs_of_London
-guid: {a: 10324864179042380067, b: 3337805577562200499}
+guid: {a: 5132767588658428592, b: 7550543678281542563}
 xshader: {localId: 1, path: ac7a055b-8cd5-c75c-2539-d099dab52358--ac7a055b-8cd5-c75c-2539-d099dab52358.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 18106727093153699329, b: 1914040424790512317}
+  guid: {a: 4757806313239462303, b: 6315415696489089920}
   floatmap:
     __class: Map
     _AmbientIntensity: 1

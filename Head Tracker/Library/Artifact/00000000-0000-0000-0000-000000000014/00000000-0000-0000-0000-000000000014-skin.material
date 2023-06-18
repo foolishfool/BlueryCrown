@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Mouth Face Inset
-guid: {a: 3261381666718167586, b: 89064207482275973}
+guid: {a: 5441466054532348684, b: 15292203640414422959}
 xshader: {localId: 1, path: 00000000-0000-0000-0000-000000000014--00000000-0000-0000-0000-000000000014.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 7732471694917188445, b: 17831098108293332670}
+  guid: {a: 4950010063025994126, b: 16214838654956024987}
   floatmap:
     __class: Map
     _Opacity: 1

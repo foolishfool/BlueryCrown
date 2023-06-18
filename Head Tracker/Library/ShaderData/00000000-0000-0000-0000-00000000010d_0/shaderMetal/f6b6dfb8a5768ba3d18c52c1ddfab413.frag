@@ -1,3 +1,5 @@
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+
 #include <metal_stdlib>
 #include <simd/simd.h>
 
@@ -17,77 +19,170 @@ struct main0_out
 
 struct main0_in
 {
-    float2 varScreenTexturePos [[user(locn0)]];
+    float2 varScreenTexturePos;
 };
+
+static inline __attribute__((always_inline))
+float3 calcDirFromPanoramicTexCoords(thread const float2& uv)
+{
+    float a = 6.283185482025146484375 * uv.x;
+    float b = 3.1415927410125732421875 * uv.y;
+    float x = sin(a) * sin(b);
+    float y = cos(b);
+    float z = cos(a) * sin(b);
+    return float3(z, y, x);
+}
+
+static inline __attribute__((always_inline))
+float radicalInverse(thread int& n)
+{
+    float val = 0.0;
+    float invBase = 0.5;
+    float invBi = invBase;
+    while (n > 0)
+    {
+        int d_i = n - ((n / 2) * 2);
+        val += (float(d_i) * invBi);
+        n /= 2;
+        invBi *= 0.5;
+    }
+    return val;
+}
+
+static inline __attribute__((always_inline))
+float2 hammersley(thread const int& i, thread const int& N)
+{
+    int param = i;
+    float _106 = radicalInverse(param);
+    return float2(float(i) / float(N), _106);
+}
+
+static inline __attribute__((always_inline))
+float3 importanceSampleGGX(thread const float2& Xi, thread const float& roughness, thread const float3& N)
+{
+    float a = roughness * roughness;
+    float Phi = 6.283185482025146484375 * Xi.x;
+    float CosTheta = sqrt((1.0 - Xi.y) / (1.0 + (((a * a) - 1.0) * Xi.y)));
+    float SinTheta = sqrt(1.0 - (CosTheta * CosTheta));
+    float3 H;
+    H.x = SinTheta * cos(Phi);
+    H.y = SinTheta * sin(Phi);
+    H.z = CosTheta;
+    float3 UpVector = float3(0.0, 0.0, 1.0);
+    float3 TangentX = normalize(cross(UpVector, N));
+    float3 TangentY = cross(N, TangentX);
+    return normalize(((TangentX * H.x) + (TangentY * H.y)) + (N * H.z));
+}
+
+static inline __attribute__((always_inline))
+float DistributionGGX(thread const float3& N, thread const float3& H, thread const float& roughness)
+{
+    float a = roughness * roughness;
+    float a2 = a * a;
+    float NdotH = fast::max(dot(N, H), 0.0);
+    float NdotH2 = NdotH * NdotH;
+    float nom = a2;
+    float denom = (NdotH2 * (a2 - 1.0)) + 1.0;
+    denom = (3.1415927410125732421875 * denom) * denom;
+    return nom / denom;
+}
+
+static inline __attribute__((always_inline))
+float _atan2(thread const float& x, thread const float& y)
+{
+    float signx = (x < 0.0) ? (-1.0) : 1.0;
+    return signx * acos(fast::clamp(y / length(float2(x, y)), -1.0, 1.0));
+}
+
+static inline __attribute__((always_inline))
+float2 calcPanoramicTexCoordsFromDir(thread const float3& reflDir)
+{
+    float param = reflDir.x;
+    float param_1 = -reflDir.z;
+    float2 uv;
+    uv.x = _atan2(param, param_1) - 1.57079637050628662109375;
+    uv.y = acos(reflDir.y);
+    uv /= float2(6.283185482025146484375, 3.1415927410125732421875);
+    uv.y = 1.0 - uv.y;
+    return uv;
+}
+
+static inline __attribute__((always_inline))
+float4 prefilterEnvMap(thread const float3& R, thread const float& roughness, thread const float& bias0, constant float2& samplerEnvSize, texture2d<float> samplerEnv, sampler samplerEnvSmplr)
+{
+    float3 N = R;
+    float3 V = R;
+    float4 color = float4(0.0);
+    float totalWeight = 0.0;
+    float _412;
+    for (int i = 0; i < 512; i++)
+    {
+        int param = i;
+        int param_1 = 512;
+        float2 Xi = hammersley(param, param_1);
+        float2 param_2 = Xi;
+        float param_3 = roughness;
+        float3 param_4 = N;
+        float3 H = importanceSampleGGX(param_2, param_3, param_4);
+        float3 L = (H * (2.0 * dot(V, H))) - V;
+        float dotNL = fast::clamp(dot(N, L), 0.0, 1.0);
+        if (dotNL > 0.0)
+        {
+            float3 param_5 = N;
+            float3 param_6 = H;
+            float param_7 = roughness;
+            float D = DistributionGGX(param_5, param_6, param_7);
+            float NdotH = fast::max(dot(N, H), 0.0);
+            float HdotV = fast::max(dot(H, V), 0.0);
+            float pdf = ((D * NdotH) / (4.0 * HdotV)) + 9.9999997473787516355514526367188e-05;
+            float resulotion = samplerEnvSize.x * samplerEnvSize.y;
+            float saTexel = 12.56637096405029296875 / resulotion;
+            float saSample = 1.0 / ((512.0 * pdf) + 9.9999997473787516355514526367188e-05);
+            if (roughness == 0.0)
+            {
+                _412 = 0.0;
+            }
+            else
+            {
+                _412 = 0.5 * log2(saSample / saTexel);
+            }
+            float mipLevel = _412;
+            float3 param_8 = L;
+            color += (samplerEnv.sample(samplerEnvSmplr, calcPanoramicTexCoordsFromDir(param_8), level(mipLevel + bias0)) * dotNL);
+            totalWeight += dotNL;
+            color = fast::min(color, float4(10000.0));
+        }
+    }
+    return color / float4(totalWeight);
+}
+
+static inline __attribute__((always_inline))
+float4 encodeRGBD(thread const float3& rgb)
+{
+    float a = 1.0 / fast::max(1.0, fast::max(rgb.x, fast::max(rgb.y, rgb.z)));
+    return float4(rgb * a, a);
+}
+
+static inline __attribute__((always_inline))
+float4 doEnv(thread const float2& uv, thread const float& roughness, constant float2& samplerEnvSize, texture2d<float> samplerEnv, sampler samplerEnvSmplr, constant float& roughnessScale)
+{
+    float2 param = uv;
+    float3 N = calcDirFromPanoramicTexCoords(param);
+    float3 param_1 = N;
+    float param_2 = roughness;
+    float param_3 = roughnessScale;
+    float3 param_4 = prefilterEnvMap(param_1, param_2, param_3, samplerEnvSize, samplerEnv, samplerEnvSmplr).xyz;
+    return encodeRGBD(param_4);
+}
 
 fragment main0_out main0(main0_in in [[stage_in]], constant buffer_t& buffer, texture2d<float> samplerEnv [[texture(0)]], sampler samplerEnvSmplr [[sampler(0)]])
 {
     main0_out out = {};
-    float _512 = 6.283185482025146484375 * in.varScreenTexturePos.x;
-    float _515 = 3.1415927410125732421875 * (1.0 - in.varScreenTexturePos.y);
-    float _519 = sin(_515);
-    float3 _531 = float3(cos(_512) * _519, cos(_515), sin(_512) * _519);
-    float4 _890;
-    float _891;
-    _891 = 0.0;
-    _890 = float4(0.0);
-    float4 _910;
-    float _911;
-    for (int _889 = 0; _889 < 512; _891 = _911, _890 = _910, _889++)
-    {
-        float _893;
-        _893 = 0.0;
-        int _892 = _889;
-        float _909 = 0.5;
-        for (; _892 > 0; )
-        {
-            int _680 = _892 / 2;
-            float _688 = fma(float(_892 - (_680 * 2)), _909, _893);
-            _909 *= 0.5;
-            _893 = _688;
-            _892 = _680;
-            continue;
-        }
-        float _708 = buffer.perceptualRoughness * buffer.perceptualRoughness;
-        float _711 = float(_889) * 0.012271846644580364227294921875;
-        float _718 = fma(_708, _708, -1.0);
-        float _724 = sqrt((1.0 - _893) / fma(_718, _893, 1.0));
-        float _729 = sqrt(fma(-_724, _724, 1.0));
-        float3 _745 = fast::normalize(cross(float3(0.0, 0.0, 1.0), _531));
-        float3 _763 = fast::normalize(((_745 * (_729 * cos(_711))) + (cross(_531, _745) * (_729 * sin(_711)))) + (_531 * _724));
-        float _576 = dot(_531, _763);
-        float3 _581 = (_763 * (2.0 * _576)) - _531;
-        float _585 = fast::clamp(dot(_531, _581), 0.0, 1.0);
-        if (_585 > 0.0)
-        {
-            float _781 = fast::max(_576, 0.0);
-            float _790 = fma(_781 * _781, _718, 1.0);
-            float _897;
-            if (buffer.perceptualRoughness == 0.0)
-            {
-                _897 = 0.0;
-            }
-            else
-            {
-                _897 = 0.5 * log2((1.0 / fma(512.0, ((((_708 * _708) / ((3.1415927410125732421875 * _790) * _790)) * _781) / (4.0 * fast::max(dot(_763, _531), 0.0))) + 9.9999997473787516355514526367188e-05, 9.9999997473787516355514526367188e-05)) / (12.56637096405029296875 / (buffer.samplerEnvSize.x * buffer.samplerEnvSize.y)));
-            }
-            float _805 = -_581.z;
-            float _807 = _581.x;
-            float2 _816 = float2(fma((_807 < 0.0) ? (-1.0) : 1.0, acos(fast::clamp(_805 / length(float2(_807, _805)), -1.0, 1.0)), -1.57079637050628662109375), acos(_581.y)) * float2(0.15915493667125701904296875, 0.3183098733425140380859375);
-            float2 _885 = _816;
-            _885.y = 1.0 - _816.y;
-            _911 = _891 + _585;
-            _910 = fast::min(_890 + (samplerEnv.sample(samplerEnvSmplr, _885, level(_897 + buffer.roughnessScale)) * _585), float4(10000.0));
-        }
-        else
-        {
-            _911 = _891;
-            _910 = _890;
-        }
-    }
-    float4 _654 = _890 / float4(_891);
-    float _850 = 1.0 / fast::max(1.0, fast::max(_654.x, fast::max(_654.y, _654.z)));
-    out.fragColor = float4(_654.xyz * _850, _850);
+    float2 uv = in.varScreenTexturePos;
+    uv.y = 1.0 - uv.y;
+    float2 param = uv;
+    float param_1 = buffer.perceptualRoughness;
+    out.fragColor = doEnv(param, param_1, buffer.samplerEnvSize, samplerEnv, samplerEnvSmplr, buffer.roughnessScale);
     return out;
 }
 

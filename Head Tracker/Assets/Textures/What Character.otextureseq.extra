@@ -1,0 +1,19 @@
+[
+  {
+    "guid": {
+      "a": "70a631d2-a305-fafc-e302-50e73ea60d81",
+      "b": ""
+    },
+    "extraType": "ResItemTextureSequence",
+    "name": "What Character",
+    "expandInPanel": false,
+    "objGuid": "",
+    "rttiType": "TextureSequence",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "compressionType": 0,
+    "quality": 0,
+    "maxResolution": 512
+  }
+]

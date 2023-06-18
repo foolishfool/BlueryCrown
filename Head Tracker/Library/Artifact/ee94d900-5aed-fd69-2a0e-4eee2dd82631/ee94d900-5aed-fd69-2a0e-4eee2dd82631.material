@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Breaking_Bad
-guid: {a: 7227779132391964335, b: 7282813993338364347}
+guid: {a: 5680780583737033999, b: 10531085896415746233}
 xshader: {localId: 1, path: ee94d900-5aed-fd69-2a0e-4eee2dd82631--ee94d900-5aed-fd69-2a0e-4eee2dd82631.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 4415502701373136348, b: 17497752228184173192}
+  guid: {a: 5686836399040446336, b: 828158943683861932}
   floatmap:
     __class: Map
     _AmbientIntensity: 1

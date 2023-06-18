@@ -1,0 +1,44 @@
+%YAML 1.1
+--- !TextureSequence &1
+name: What Character
+guid: {a: 4671235955519828051, b: 16589863393746913956}
+assettype:
+  __class: TexSeqAssetType
+  value: image
+lazyload: true
+cache: false
+atlases:
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--0.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--1.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--2.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--3.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--4.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--5.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--6.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--7.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--8.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--9.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--10.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--11.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--12.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--13.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--14.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--15.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--16.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--17.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--18.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--19.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--20.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--21.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--22.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--23.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--24.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--25.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--26.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--27.imageatlas}
+  - {localId: 1, path: 70a631d2-a305-fafc-e302-50e73ea60d81--28.imageatlas}
+memoryLimit: 0
+preload: true
+indexAction:
+  __class: Map
+preloadCount: 5

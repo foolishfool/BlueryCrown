@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: The_Office
-guid: {a: 1388070869105314392, b: 645951477357374860}
+guid: {a: 5029440905583676141, b: 9262856794722152867}
 xshader: {localId: 1, path: 5c62af8a-e6ac-2310-5750-65eed9a0e19c--5c62af8a-e6ac-2310-5750-65eed9a0e19c.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 885768230606921154, b: 5536625169127118475}
+  guid: {a: 5349991329083460244, b: 6799429515618310311}
   floatmap:
     __class: Map
     _AmbientIntensity: 1

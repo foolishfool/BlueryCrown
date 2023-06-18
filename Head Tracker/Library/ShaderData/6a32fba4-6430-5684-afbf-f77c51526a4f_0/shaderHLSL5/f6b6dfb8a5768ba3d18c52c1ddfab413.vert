@@ -1,6 +1,10 @@
 row_major uniform float4x4 u_Model;
 row_major uniform float4x4 u_TransposeInvModel;
 row_major uniform float4x4 u_MVP;
+row_major uniform float4x4 u_InvModel;
+uniform float4 u_Time;
+uniform float4 u_WorldSpaceCameraPos;
+uniform float4 u_ScreenParams;
 
 static float4 gl_Position;
 static float2 v_uv0_src;
@@ -16,6 +20,7 @@ static float3 v_nDirWS;
 static float3 v_tDirWS;
 static float3 v_bDirWS;
 static float4 v_gl_pos;
+static float3 attColor;
 
 struct SPIRV_Cross_Input
 {
@@ -24,6 +29,7 @@ struct SPIRV_Cross_Input
     float2 attTexcoord0 : attTexcoord0;
     float2 attTexcoord1 : attTexcoord1;
     float4 attTangent : attTangent;
+    float3 attColor : attColor;
 };
 
 struct SPIRV_Cross_Output
@@ -45,12 +51,16 @@ void vert_main()
     v_uv0 = _23;
     v_uv0_src = _23;
     v_uv1 = float2(attTexcoord1.x, 1.0f - attTexcoord1.y);
-    float4 _69 = float4(attPosition, 1.0f);
-    v_posWS = mul(_69, u_Model).xyz;
-    v_nDirWS = mul(float4(attNormal, 0.0f), u_TransposeInvModel).xyz;
-    v_tDirWS = mul(float4(attTangent.xyz, 0.0f), u_Model).xyz;
-    v_bDirWS = mul(float4(normalize(cross(attNormal, attTangent.xyz)) * attTangent.w, 0.0f), u_Model).xyz;
-    gl_Position = mul(_69, u_MVP);
+    float3 attBinormal = normalize(cross(attNormal, attTangent.xyz)) * attTangent.w;
+    float3 usedPosition = attPosition;
+    float3 usedNormal = attNormal;
+    float3 usedTangent = attTangent.xyz;
+    float3 usedBinormal = attBinormal;
+    v_posWS = mul(float4(usedPosition, 1.0f), u_Model).xyz;
+    v_nDirWS = mul(float4(usedNormal, 0.0f), u_TransposeInvModel).xyz;
+    v_tDirWS = mul(float4(usedTangent, 0.0f), u_Model).xyz;
+    v_bDirWS = mul(float4(usedBinormal, 0.0f), u_Model).xyz;
+    gl_Position = mul(float4(usedPosition, 1.0f), u_MVP);
     v_gl_pos = gl_Position;
     v_gl_pos = gl_Position;
     gl_Position.y = -gl_Position.y;
@@ -64,6 +74,7 @@ SPIRV_Cross_Output main(SPIRV_Cross_Input stage_input)
     attNormal = stage_input.attNormal;
     attTangent = stage_input.attTangent;
     attPosition = stage_input.attPosition;
+    attColor = stage_input.attColor;
     vert_main();
     SPIRV_Cross_Output stage_output;
     stage_output.gl_Position = gl_Position;

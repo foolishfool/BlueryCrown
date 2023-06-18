@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Nose Face Inset
-guid: {a: 15511400882507450051, b: 17045858609578987189}
+guid: {a: 5104320597921405207, b: 13351954509537663643}
 xshader: {localId: 1, path: 00000000-0000-0000-0000-000000000015--00000000-0000-0000-0000-000000000015.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 9389234615598573959, b: 15404044887519587489}
+  guid: {a: 5317643227819167011, b: 5547146955307631500}
   floatmap:
     __class: Map
     _Opacity: 1

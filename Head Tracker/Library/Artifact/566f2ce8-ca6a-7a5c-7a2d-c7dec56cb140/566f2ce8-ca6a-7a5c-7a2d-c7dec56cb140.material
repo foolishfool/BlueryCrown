@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Better_Call_Saul
-guid: {a: 955048954655844821, b: 7589498754315804842}
+guid: {a: 5283894412417485436, b: 7406014522130984857}
 xshader: {localId: 1, path: 566f2ce8-ca6a-7a5c-7a2d-c7dec56cb140--566f2ce8-ca6a-7a5c-7a2d-c7dec56cb140.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 15654661531241500172, b: 12477560317205463719}
+  guid: {a: 5009720486535701557, b: 5571670893476996497}
   floatmap:
     __class: Map
     _AmbientIntensity: 1

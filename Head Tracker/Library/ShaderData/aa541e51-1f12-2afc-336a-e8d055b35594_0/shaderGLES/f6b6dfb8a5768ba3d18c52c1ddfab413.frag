@@ -2,6 +2,39 @@
 precision highp float;
 precision highp int;
 
+struct SurfaceParams
+{
+    vec2 uv0;
+    float opacity;
+    vec3 roughParams;
+    vec2 occParams;
+    vec3 diffCol;
+    vec3 specCol;
+    vec3 pos;
+    vec3 nDir;
+    vec3 vnDir;
+    vec3 vDir;
+    vec3 rDir;
+    float ndv;
+};
+
+struct LightParams
+{
+    float enable;
+    vec3 lDir;
+    vec3 color;
+    float intensity;
+    vec3 attenuate;
+    vec3 areaLightPoints[4];
+    float areaLightShape;
+    float areaLightTwoSide;
+    vec3 hDir;
+    float ldh;
+    float ndl;
+    float ndh;
+    float vdh;
+};
+
 uniform mediump sampler2D u_ltc_mat;
 uniform mediump sampler2D u_ltc_mag;
 uniform float u_DirLightsEnabled[3];
@@ -22,6 +55,7 @@ uniform vec4 u_SpotLightsDirection[2];
 uniform float u_SpotLightsOuterAngleCos[2];
 uniform float u_SpotLightsInnerAngleCos[2];
 uniform float u_AreaLightsEnabled[2];
+uniform vec4 u_AreaLightsDirection[2];
 uniform vec4 u_AreaLightsColor[2];
 uniform float u_AreaLightsIntensity[2];
 uniform vec4 u_AreaLightsPoint0[2];
@@ -35,1796 +69,1293 @@ uniform float _Env;
 uniform float _EnvRot;
 uniform vec4 u_WorldSpaceCameraPos;
 uniform vec4 _AlbedoColor;
+uniform mediump sampler2D _AlbedoTexture;
 uniform float _Metallic;
 uniform float _Roughness;
+uniform float _Cutoff;
+uniform float _Occlusion;
+uniform float _ThinFilmIOR;
+uniform mat4 u_VP;
+uniform mat4 u_MV;
+uniform mat4 u_InvView;
+uniform mat4 u_CameraInvProjection;
+uniform mat4 u_InvModel;
+uniform vec4 u_Time;
+uniform float u_DirLightNum;
+uniform float u_PointLightNum;
+uniform float u_SpotLightNum;
+uniform mediump sampler2D u_FBOTexture;
+uniform float u_AreaLightNum;
+uniform vec4 u_AreaLightsPosition[2];
+uniform float u_AreaLightsAttenRangeInv[2];
 
 in vec3 v_nDirWS;
 in vec3 v_posWS;
+in vec3 v_tDirWS;
+in vec3 v_bDirWS;
+in vec2 v_uv0;
+in vec4 v_gl_pos;
 layout(location = 0) out vec4 o_fragColor;
+in vec2 v_uv0_src;
+in vec2 v_uv1;
 
-vec3 _12854;
-float _12935;
-vec4 _15940;
+vec3 SafePow(inout vec3 v, inout vec3 e)
+{
+    v = max(v, vec3(9.9999997473787516355514526367188e-06));
+    e = max(e, vec3(9.9999997473787516355514526367188e-06));
+    return pow(v, e);
+}
+
+vec3 GammaToLinear(vec3 col)
+{
+    vec3 param = col;
+    vec3 param_1 = vec3(2.2000000476837158203125);
+    vec3 _385 = SafePow(param, param_1);
+    return _385;
+}
+
+float saturate(float x)
+{
+    return clamp(x, 0.0, 1.0);
+}
+
+float Pow2(float x)
+{
+    return x * x;
+}
+
+float IorToSpecularLevel(float iorFrom, float iorTo)
+{
+    float sqrtR0 = (iorTo - iorFrom) / (iorTo + iorFrom);
+    return sqrtR0 * sqrtR0;
+}
+
+void BuildSurfaceParams(inout SurfaceParams S)
+{
+    vec3 vnDirWS = normalize(v_nDirWS);
+    vec3 vDir = normalize(u_WorldSpaceCameraPos.xyz - v_posWS);
+    if (dot(vDir, vnDirWS) < (-0.0500000007450580596923828125))
+    {
+        vnDirWS = -vnDirWS;
+    }
+    vec3 vtDirWS = normalize(v_tDirWS);
+    vec3 vbDirWS = normalize(v_bDirWS);
+    vec2 uv0 = v_uv0;
+    S.uv0 = uv0;
+    vec3 param = _AlbedoColor.xyz;
+    vec3 albedo = GammaToLinear(param);
+    float opacity = _AlbedoColor.w;
+    vec4 t_AlbedoTex = texture(_AlbedoTexture, uv0);
+    vec3 param_1 = t_AlbedoTex.xyz;
+    albedo *= GammaToLinear(param_1);
+    opacity *= t_AlbedoTex.w;
+    float metallic = _Metallic;
+    float roughness = _Roughness;
+    float ao = 1.0;
+    float cavity = 1.0;
+    vec3 normal = vnDirWS;
+    S.vDir = vDir;
+    float avgTextureNormalLength = 1.0;
+    S.opacity = opacity;
+    float param_2 = metallic;
+    metallic = saturate(param_2);
+    S.nDir = normal;
+    float perceptualRoughness = clamp(roughness, 0.0, 1.0);
+    S.roughParams.x = perceptualRoughness;
+    float param_3 = S.roughParams.x;
+    S.roughParams.y = Pow2(param_3);
+    float param_4 = S.roughParams.y;
+    S.roughParams.z = Pow2(param_4);
+    S.diffCol = albedo * (1.0 - metallic);
+    S.pos = v_posWS;
+    S.vnDir = vnDirWS;
+    S.ndv = max(0.0, dot(S.nDir, S.vDir));
+    S.rDir = normalize(reflect(-S.vDir, S.nDir));
+    float ior = 1.5;
+    float param_5 = 1.0;
+    float param_6 = ior;
+    float dielectricF0 = IorToSpecularLevel(param_5, param_6);
+    vec3 specularAlbedo = albedo;
+    S.specCol = mix(vec3(dielectricF0), specularAlbedo, vec3(metallic));
+    S.occParams = vec2(1.0);
+}
+
+float ACos(float inX)
+{
+    float x = abs(inX);
+    float res = ((-0.15658299624919891357421875) * x) + 1.57079601287841796875;
+    res *= sqrt(1.0 - x);
+    float _293;
+    if (inX >= 0.0)
+    {
+        _293 = res;
+    }
+    else
+    {
+        _293 = 3.1415927410125732421875 - res;
+    }
+    return _293;
+}
+
+float ATan(float x, float y)
+{
+    float signx = (x < 0.0) ? (-1.0) : 1.0;
+    float param = clamp(y / length(vec2(x, y)), -1.0, 1.0);
+    return signx * ACos(param);
+}
+
+vec2 GetPanoramicTexCoordsFromDir(inout vec3 dir, float rotation)
+{
+    dir = normalize(dir);
+    float param = dir.x;
+    float param_1 = -dir.z;
+    vec2 uv;
+    uv.x = (ATan(param, param_1) - 1.57079637050628662109375) / 6.283185482025146484375;
+    uv.y = acos(dir.y) / 3.1415927410125732421875;
+    uv.x += rotation;
+    uv.x = fract((uv.x + floor(uv.x)) + 1.0);
+    return uv;
+}
+
+vec3 SamplerEncodedPanoramicWithUV(vec2 uv, float lod)
+{
+    float lodMin = floor(lod);
+    float lodLerp = lod - lodMin;
+    vec2 uvLodMin = uv;
+    vec2 uvLodMax = uv;
+    vec2 size = vec2(0.0);
+    if (abs(lodMin - 0.0) < 0.001000000047497451305389404296875)
+    {
+        uvLodMin.x = ((((uv.x * 511.0) / 512.0) + 0.0009765625) * 1.0) + 0.0;
+        uvLodMin.y = ((((uv.y * 255.0) / 256.0) + 0.001953125) * 0.5) + 0.0;
+        uvLodMax.x = ((((uv.x * 255.0) / 256.0) + 0.001953125) * 0.5) + 0.0;
+        uvLodMax.y = ((((uv.y * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+    }
+    else
+    {
+        if (abs(lodMin - 1.0) < 0.001000000047497451305389404296875)
+        {
+            uvLodMin.x = ((((uv.x * 255.0) / 256.0) + 0.001953125) * 0.5) + 0.0;
+            uvLodMin.y = ((((uv.y * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+            uvLodMax.x = ((((uv.x * 255.0) / 256.0) + 0.001953125) * 0.5) + 0.5;
+            uvLodMax.y = ((((uv.y * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+        }
+        else
+        {
+            if (abs(lodMin - 2.0) < 0.001000000047497451305389404296875)
+            {
+                uvLodMin.x = ((((uv.x * 255.0) / 256.0) + 0.001953125) * 0.5) + 0.5;
+                uvLodMin.y = ((((uv.y * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+                uvLodMax.x = ((((uv.x * 255.0) / 256.0) + 0.001953125) * 0.5) + 0.0;
+                uvLodMax.y = ((((uv.y * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.75;
+            }
+            else
+            {
+                if (abs(lodMin - 3.0) < 0.001000000047497451305389404296875)
+                {
+                    uvLodMin.x = ((((uv.x * 255.0) / 256.0) + 0.001953125) * 0.5) + 0.0;
+                    uvLodMin.y = ((((uv.y * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.75;
+                    uvLodMax.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+                    uvLodMax.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.75;
+                }
+                else
+                {
+                    if (abs(lodMin - 4.0) < 0.001000000047497451305389404296875)
+                    {
+                        uvLodMin.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+                        uvLodMin.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.75;
+                        uvLodMax.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.75;
+                        uvLodMax.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.75;
+                    }
+                    else
+                    {
+                        if (abs(lodMin - 5.0) < 0.001000000047497451305389404296875)
+                        {
+                            uvLodMin.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.75;
+                            uvLodMin.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.75;
+                            uvLodMax.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+                            uvLodMax.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.875;
+                        }
+                        else
+                        {
+                            if (abs(lodMin - 6.0) < 0.001000000047497451305389404296875)
+                            {
+                                uvLodMin.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.5;
+                                uvLodMin.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.875;
+                                uvLodMax.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.75;
+                                uvLodMax.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.875;
+                            }
+                            else
+                            {
+                                uvLodMin.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.75;
+                                uvLodMin.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.875;
+                                uvLodMax.x = ((((uv.x * 127.0) / 128.0) + 0.00390625) * 0.25) + 0.75;
+                                uvLodMax.y = ((((uv.y * 63.0) / 64.0) + 0.0078125) * 0.125) + 0.875;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    vec4 envEncoded = mix(texture(_EnvTex, uvLodMin), texture(_EnvTex, uvLodMax), vec4(lodLerp));
+    return envEncoded.xyz / vec3(envEncoded.w);
+}
+
+vec3 SampleIBL(vec3 dir, float rotation, float lod)
+{
+    vec3 param = dir;
+    float param_1 = rotation;
+    vec2 _2996 = GetPanoramicTexCoordsFromDir(param, param_1);
+    vec2 uv = _2996;
+    vec2 param_2 = uv;
+    float param_3 = lod;
+    return SamplerEncodedPanoramicWithUV(param_2, param_3) * _Env;
+}
+
+vec3 GTAO_MultiBounce(float visibility, vec3 albedo)
+{
+    vec3 a = (albedo * 2.040400028228759765625) - vec3(0.3323999941349029541015625);
+    vec3 b = (albedo * (-4.79510021209716796875)) + vec3(0.6417000293731689453125);
+    vec3 c = (albedo * 2.755199909210205078125) + vec3(0.69029998779296875);
+    return max(vec3(visibility), ((((a * visibility) + b) * visibility) + c) * visibility);
+}
+
+vec3 Diffuse_Env(SurfaceParams S)
+{
+    vec3 diffuseNormal = S.nDir;
+    vec3 lighting = vec3(0.0);
+    vec3 param = diffuseNormal;
+    float param_1 = _EnvRot;
+    float param_2 = 7.0;
+    lighting = SampleIBL(param, param_1, param_2);
+    float param_3 = S.occParams.x;
+    vec3 param_4 = S.diffCol;
+    vec3 multiBounceColor = GTAO_MultiBounce(param_3, param_4);
+    return (S.diffCol * lighting) * multiBounceColor;
+}
+
+vec3 EnvBRDFApprox(vec3 F0, float perceptualRoughness, float ndv)
+{
+    vec4 r = (vec4(-1.0, -0.0274999998509883880615234375, -0.572000026702880859375, 0.02199999988079071044921875) * perceptualRoughness) + vec4(1.0, 0.0425000004470348358154296875, 1.03999996185302734375, -0.039999999105930328369140625);
+    float a004 = (min(r.x * r.x, exp2((-9.27999973297119140625) * ndv)) * r.x) + r.y;
+    vec2 AB = (vec2(-1.03999996185302734375, 1.03999996185302734375) * a004) + r.zw;
+    float param = 50.0 * F0.y;
+    AB.y *= saturate(param);
+    return (F0 * AB.x) + vec3(AB.y);
+}
+
+vec3 EnvBRDF(SurfaceParams S)
+{
+    vec3 param = S.specCol;
+    float param_1 = S.roughParams.x;
+    float param_2 = S.ndv;
+    return EnvBRDFApprox(param, param_1, param_2);
+}
+
+vec3 Specular_Env(inout SurfaceParams S)
+{
+    vec3 dir = mix(S.rDir, S.nDir, vec3(S.roughParams.x * S.roughParams.y));
+    vec3 param = dir;
+    float param_1 = _EnvRot;
+    float param_2 = S.roughParams.x * 7.0;
+    vec3 specEnv = SampleIBL(param, param_1, param_2);
+    SurfaceParams param_3 = S;
+    S = param_3;
+    vec3 brdf = EnvBRDF(param_3);
+    float param_4 = S.occParams.y;
+    vec3 param_5 = S.specCol;
+    vec3 multiBounceColor = GTAO_MultiBounce(param_4, param_5);
+    vec3 Fr = (brdf * multiBounceColor) * specEnv;
+    return Fr;
+}
+
+void DoIndirectLight(inout SurfaceParams S, inout vec3 Fd, inout vec3 Fr)
+{
+    float coatAttenuate_IBL = 1.0;
+    SurfaceParams param = S;
+    S = param;
+    Fd += (Diffuse_Env(param) * coatAttenuate_IBL);
+    SurfaceParams param_1 = S;
+    vec3 _3197 = Specular_Env(param_1);
+    S = param_1;
+    Fr += (_3197 * coatAttenuate_IBL);
+}
+
+void LightCommomOperations(SurfaceParams S, inout LightParams L)
+{
+    L.hDir = normalize(L.lDir + S.vDir);
+    L.ldh = max(0.0, dot(L.lDir, L.hDir));
+    L.ndl = max(0.0, dot(S.nDir, L.lDir));
+    L.ndh = max(0.0, dot(S.nDir, L.hDir));
+    L.vdh = max(0.0, dot(S.vDir, L.hDir));
+}
+
+void BuildDirLightParams(inout SurfaceParams S, mediump int index, inout LightParams ML)
+{
+    ML.enable = u_DirLightsEnabled[index];
+    ML.lDir = normalize(-u_DirLightsDirection[index].xyz);
+    ML.color = u_DirLightsColor[index].xyz;
+    ML.intensity = (u_DirLightsIntensity[index] * u_DirLightsEnabled[index]) * 3.1415920257568359375;
+    ML.attenuate = vec3(1.0);
+    SurfaceParams param = S;
+    LightParams param_1 = ML;
+    LightCommomOperations(param, param_1);
+    S = param;
+    ML = param_1;
+}
+
+vec3 Diffuse_Lambert(SurfaceParams S, LightParams L)
+{
+    float lighting = L.ndl * 0.31830990314483642578125;
+    return (((S.diffCol * L.color) * L.intensity) * L.attenuate) * lighting;
+}
+
+vec3 Diffuse_High(inout SurfaceParams S, inout LightParams L)
+{
+    SurfaceParams param = S;
+    LightParams param_1 = L;
+    S = param;
+    L = param_1;
+    return Diffuse_Lambert(param, param_1);
+}
+
+float Pow5(float x)
+{
+    float x2 = x * x;
+    return (x2 * x2) * x;
+}
+
+vec3 F_Schlick(vec3 f0, inout float vdh)
+{
+    vdh = max(0.0, vdh);
+    float param = 1.0 - vdh;
+    float t = Pow5(param);
+    return f0 + ((vec3(1.0) - f0) * t);
+}
+
+vec3 FresnelSpecular(SurfaceParams S, float vdh)
+{
+    vec3 f0 = S.specCol;
+    vec3 param = f0;
+    float param_1 = vdh;
+    vec3 _2359 = F_Schlick(param, param_1);
+    return _2359;
+}
+
+float V_SmithJointApprox(float a, float ndv, float ndl)
+{
+    float lambdaV = ndl * ((ndv * (1.0 - a)) + a);
+    float lambdaL = ndv * ((ndl * (1.0 - a)) + a);
+    return 0.5 / ((lambdaV + lambdaL) + 9.9999997473787516355514526367188e-06);
+}
+
+float D_GGX(float ndh, float a2)
+{
+    float d = (((ndh * a2) - ndh) * ndh) + 1.0;
+    return (a2 * 0.31830990314483642578125) / ((d * d) + 1.0000000116860974230803549289703e-07);
+}
+
+vec3 Specular_GGX(inout SurfaceParams S, LightParams L)
+{
+    SurfaceParams param = S;
+    float param_1 = L.vdh;
+    S = param;
+    vec3 F = FresnelSpecular(param, param_1);
+    float a = S.roughParams.y;
+    float a2 = S.roughParams.z;
+    float param_2 = L.ndl;
+    float param_3 = S.ndv;
+    float param_4 = a;
+    float V = V_SmithJointApprox(param_2, param_3, param_4);
+    float param_5 = L.ndh;
+    float param_6 = a2;
+    float D = D_GGX(param_5, param_6);
+    vec3 specular = ((((F * (D * V)) * L.ndl) * L.color) * L.intensity) * L.attenuate;
+    return specular;
+}
+
+vec3 Specular_High(inout SurfaceParams S, inout LightParams L)
+{
+    SurfaceParams param = S;
+    LightParams param_1 = L;
+    vec3 _2480 = Specular_GGX(param, param_1);
+    S = param;
+    L = param_1;
+    return _2480;
+}
+
+void DoHeavyLight(inout SurfaceParams S, inout LightParams L, inout vec3 Fd, inout vec3 Fr)
+{
+    if (L.enable > 0.5)
+    {
+        float coatAttenuate = 1.0;
+        SurfaceParams param = S;
+        LightParams param_1 = L;
+        vec3 _3089 = Diffuse_High(param, param_1);
+        S = param;
+        L = param_1;
+        Fd += (_3089 * coatAttenuate);
+        SurfaceParams param_2 = S;
+        LightParams param_3 = L;
+        vec3 _3100 = Specular_High(param_2, param_3);
+        S = param_2;
+        L = param_3;
+        Fr += (_3100 * coatAttenuate);
+    }
+}
+
+vec3 Diffuse_Low(inout SurfaceParams S, inout LightParams L)
+{
+    SurfaceParams param = S;
+    LightParams param_1 = L;
+    S = param;
+    L = param_1;
+    return Diffuse_Lambert(param, param_1);
+}
+
+float V_Const()
+{
+    return 0.25;
+}
+
+vec3 Specular_GGX_Low(inout SurfaceParams S, LightParams L)
+{
+    SurfaceParams param = S;
+    float param_1 = L.vdh;
+    S = param;
+    vec3 F = FresnelSpecular(param, param_1);
+    float a = S.roughParams.y;
+    float a2 = S.roughParams.z;
+    float V = V_Const();
+    float param_2 = L.ndh;
+    float param_3 = a2;
+    float D = D_GGX(param_2, param_3);
+    vec3 specular = ((((F * (D * V)) * L.ndl) * L.color) * L.intensity) * L.attenuate;
+    return specular;
+}
+
+vec3 Specular_Low(inout SurfaceParams S, inout LightParams L)
+{
+    SurfaceParams param = S;
+    LightParams param_1 = L;
+    vec3 _2489 = Specular_GGX_Low(param, param_1);
+    S = param;
+    L = param_1;
+    return _2489;
+}
+
+void DoLight(inout SurfaceParams S, inout LightParams L, inout vec3 Fd, inout vec3 Fr)
+{
+    if (L.enable > 0.5)
+    {
+        float coatAttenuate = 1.0;
+        SurfaceParams param = S;
+        LightParams param_1 = L;
+        vec3 _3117 = Diffuse_Low(param, param_1);
+        S = param;
+        L = param_1;
+        Fd += (_3117 * coatAttenuate);
+        SurfaceParams param_2 = S;
+        LightParams param_3 = L;
+        vec3 _3128 = Specular_Low(param_2, param_3);
+        S = param_2;
+        L = param_3;
+        Fr += (_3128 * coatAttenuate);
+    }
+}
+
+float Pow4(float x)
+{
+    float x2 = x * x;
+    return x2 * x2;
+}
+
+void BuildPointLightParams(inout SurfaceParams S, mediump int index, inout LightParams PL)
+{
+    vec3 lVec = vec3(0.0);
+    float lDist = 0.0;
+    PL.enable = u_PointLightsEnabled[index];
+    lVec = u_PointLightsPosition[index].xyz - S.pos;
+    lDist = length(lVec);
+    PL.lDir = lVec / vec3(lDist);
+    PL.color = u_PointLightsColor[index].xyz;
+    PL.intensity = (u_PointLightsIntensity[index] * u_PointLightsEnabled[index]) * 3.1415920257568359375;
+    float lWorldDist = lDist;
+    lDist *= u_PointLightsAttenRangeInv[index];
+    float param = lDist;
+    float param_1 = 1.0 - Pow4(param);
+    float param_2 = saturate(param_1);
+    float param_3 = lDist;
+    float attenuate = (Pow2(param_2) * (Pow2(param_3) + 1.0)) * 0.25;
+    PL.attenuate = vec3(attenuate, attenuate, attenuate);
+    SurfaceParams param_4 = S;
+    LightParams param_5 = PL;
+    LightCommomOperations(param_4, param_5);
+    S = param_4;
+    PL = param_5;
+}
+
+void BuildSpotLightParams(inout SurfaceParams S, mediump int index, inout LightParams SL)
+{
+    vec3 lVec = vec3(0.0);
+    float lDist = 0.0;
+    vec3 spotDir = vec3(0.0);
+    float angleAtten = 0.0;
+    SL.enable = u_SpotLightsEnabled[index];
+    lVec = u_SpotLightsPosition[index].xyz - S.pos;
+    lDist = length(lVec);
+    SL.lDir = lVec / vec3(lDist);
+    SL.color = u_SpotLightsColor[index].xyz;
+    SL.intensity = (u_SpotLightsIntensity[index] * u_SpotLightsEnabled[index]) * 3.1415920257568359375;
+    float lWorldDist = lDist;
+    lDist *= u_SpotLightsAttenRangeInv[index];
+    float param = lDist;
+    float param_1 = 1.0 - Pow4(param);
+    float param_2 = saturate(param_1);
+    float param_3 = lDist;
+    float attenuate = (Pow2(param_2) * (Pow2(param_3) + 1.0)) * 0.25;
+    spotDir = normalize(-u_SpotLightsDirection[index].xyz);
+    angleAtten = max(0.0, dot(SL.lDir, spotDir));
+    attenuate *= smoothstep(u_SpotLightsOuterAngleCos[index], u_SpotLightsInnerAngleCos[index], angleAtten);
+    SL.attenuate = vec3(attenuate, attenuate, attenuate);
+    SurfaceParams param_4 = S;
+    LightParams param_5 = SL;
+    LightCommomOperations(param_4, param_5);
+    S = param_4;
+    SL = param_5;
+}
+
+void BuildAreaLightParams(SurfaceParams S, mediump int index, inout LightParams AL)
+{
+    AL.enable = u_AreaLightsEnabled[index];
+    AL.lDir = u_AreaLightsDirection[index].xyz;
+    AL.color = u_AreaLightsColor[index].xyz;
+    AL.intensity = (u_AreaLightsIntensity[index] * u_AreaLightsEnabled[index]) * 3.1415920257568359375;
+    AL.attenuate = vec3(1.0);
+    AL.areaLightPoints[0] = u_AreaLightsPoint0[index].xyz;
+    AL.areaLightPoints[1] = u_AreaLightsPoint1[index].xyz;
+    AL.areaLightPoints[2] = u_AreaLightsPoint2[index].xyz;
+    AL.areaLightPoints[3] = u_AreaLightsPoint3[index].xyz;
+    AL.areaLightShape = u_AreaLightsShape[index];
+    AL.areaLightTwoSide = u_AreaLightsTwoSide[index];
+}
+
+vec3 SolveCubic(inout vec4 Coefficient)
+{
+    vec3 _997 = Coefficient.xyz / vec3(Coefficient.w);
+    Coefficient = vec4(_997.x, _997.y, _997.z, Coefficient.w);
+    vec2 _1004 = Coefficient.yz / vec2(3.0);
+    Coefficient = vec4(Coefficient.x, _1004.x, _1004.y, Coefficient.w);
+    float A = Coefficient.w;
+    float B = Coefficient.z;
+    float C = Coefficient.y;
+    float D = Coefficient.x;
+    vec3 Delta = vec3(((-Coefficient.z) * Coefficient.z) + Coefficient.y, ((-Coefficient.y) * Coefficient.z) + Coefficient.x, dot(vec2(Coefficient.z, -Coefficient.y), Coefficient.xy));
+    float Discriminant = dot(vec2(4.0 * Delta.x, -Delta.y), Delta.zy);
+    float A_a = 1.0;
+    float C_a = Delta.x;
+    float D_a = (((-2.0) * B) * Delta.x) + Delta.y;
+    float Theta = atan(sqrt(Discriminant), -D_a) / 3.0;
+    float x_1a = (2.0 * sqrt(-C_a)) * cos(Theta);
+    float x_3a = (2.0 * sqrt(-C_a)) * cos(Theta + 2.094395160675048828125);
+    float xl;
+    if ((x_1a + x_3a) > (2.0 * B))
+    {
+        xl = x_1a;
+    }
+    else
+    {
+        xl = x_3a;
+    }
+    vec2 xlc = vec2(xl - B, A);
+    float A_d = D;
+    float C_d = Delta.z;
+    float D_d = ((-D) * Delta.y) + ((2.0 * C) * Delta.z);
+    float Theta_1 = atan(D * sqrt(Discriminant), -D_d) / 3.0;
+    float x_1d = (2.0 * sqrt(-C_d)) * cos(Theta_1);
+    float x_3d = (2.0 * sqrt(-C_d)) * cos(Theta_1 + 2.094395160675048828125);
+    float xs;
+    if ((x_1d + x_3d) < (2.0 * C))
+    {
+        xs = x_1d;
+    }
+    else
+    {
+        xs = x_3d;
+    }
+    vec2 xsc = vec2(-D, xs + C);
+    float E = xlc.y * xsc.y;
+    float F = ((-xlc.x) * xsc.y) - (xlc.y * xsc.x);
+    float G = xlc.x * xsc.x;
+    vec2 xmc = vec2((C * F) - (B * G), ((-B) * F) + (C * E));
+    vec3 Root = vec3(xsc.x / xsc.y, xmc.x / xmc.y, xlc.x / xlc.y);
+    bool _1242 = Root.x < Root.y;
+    bool _1250;
+    if (_1242)
+    {
+        _1250 = Root.x < Root.z;
+    }
+    else
+    {
+        _1250 = _1242;
+    }
+    if (_1250)
+    {
+        Root = Root.yxz;
+    }
+    else
+    {
+        bool _1260 = Root.z < Root.x;
+        bool _1268;
+        if (_1260)
+        {
+            _1268 = Root.z < Root.y;
+        }
+        else
+        {
+            _1268 = _1260;
+        }
+        if (_1268)
+        {
+            Root = Root.xzy;
+        }
+    }
+    return Root;
+}
+
+void _LTC_ClipQuadToHorizon(inout vec3 L[5], inout mediump int n)
+{
+    mediump int config = 0;
+    if (L[0].z > 0.0)
+    {
+        config++;
+    }
+    if (L[1].z > 0.0)
+    {
+        config += 2;
+    }
+    if (L[2].z > 0.0)
+    {
+        config += 4;
+    }
+    if (L[3].z > 0.0)
+    {
+        config += 8;
+    }
+    n = 0;
+    if (config == 0)
+    {
+    }
+    else
+    {
+        if (config == 1)
+        {
+            n = 3;
+            L[1] = (L[0] * (-L[1].z)) + (L[1] * L[0].z);
+            L[2] = (L[0] * (-L[3].z)) + (L[3] * L[0].z);
+        }
+        else
+        {
+            if (config == 2)
+            {
+                n = 3;
+                L[0] = (L[1] * (-L[0].z)) + (L[0] * L[1].z);
+                L[2] = (L[1] * (-L[2].z)) + (L[2] * L[1].z);
+            }
+            else
+            {
+                if (config == 3)
+                {
+                    n = 4;
+                    L[2] = (L[1] * (-L[2].z)) + (L[2] * L[1].z);
+                    L[3] = (L[0] * (-L[3].z)) + (L[3] * L[0].z);
+                }
+                else
+                {
+                    if (config == 4)
+                    {
+                        n = 3;
+                        L[0] = (L[2] * (-L[3].z)) + (L[3] * L[2].z);
+                        L[1] = (L[2] * (-L[1].z)) + (L[1] * L[2].z);
+                    }
+                    else
+                    {
+                        if (config == 5)
+                        {
+                            n = 0;
+                        }
+                        else
+                        {
+                            if (config == 6)
+                            {
+                                n = 4;
+                                L[0] = (L[1] * (-L[0].z)) + (L[0] * L[1].z);
+                                L[3] = (L[2] * (-L[3].z)) + (L[3] * L[2].z);
+                            }
+                            else
+                            {
+                                if (config == 7)
+                                {
+                                    n = 5;
+                                    L[4] = (L[0] * (-L[3].z)) + (L[3] * L[0].z);
+                                    L[3] = (L[2] * (-L[3].z)) + (L[3] * L[2].z);
+                                }
+                                else
+                                {
+                                    if (config == 8)
+                                    {
+                                        n = 3;
+                                        L[0] = (L[3] * (-L[0].z)) + (L[0] * L[3].z);
+                                        L[1] = (L[3] * (-L[2].z)) + (L[2] * L[3].z);
+                                        L[2] = L[3];
+                                    }
+                                    else
+                                    {
+                                        if (config == 9)
+                                        {
+                                            n = 4;
+                                            L[1] = (L[0] * (-L[1].z)) + (L[1] * L[0].z);
+                                            L[2] = (L[3] * (-L[2].z)) + (L[2] * L[3].z);
+                                        }
+                                        else
+                                        {
+                                            if (config == 10)
+                                            {
+                                                n = 0;
+                                            }
+                                            else
+                                            {
+                                                if (config == 11)
+                                                {
+                                                    n = 5;
+                                                    L[4] = L[3];
+                                                    L[3] = (L[3] * (-L[2].z)) + (L[2] * L[3].z);
+                                                    L[2] = (L[1] * (-L[2].z)) + (L[2] * L[1].z);
+                                                }
+                                                else
+                                                {
+                                                    if (config == 12)
+                                                    {
+                                                        n = 4;
+                                                        L[1] = (L[2] * (-L[1].z)) + (L[1] * L[2].z);
+                                                        L[0] = (L[3] * (-L[0].z)) + (L[0] * L[3].z);
+                                                    }
+                                                    else
+                                                    {
+                                                        if (config == 13)
+                                                        {
+                                                            n = 5;
+                                                            L[4] = L[3];
+                                                            L[3] = L[2];
+                                                            L[2] = (L[2] * (-L[1].z)) + (L[1] * L[2].z);
+                                                            L[1] = (L[0] * (-L[1].z)) + (L[1] * L[0].z);
+                                                        }
+                                                        else
+                                                        {
+                                                            if (config == 14)
+                                                            {
+                                                                n = 5;
+                                                                L[4] = (L[3] * (-L[0].z)) + (L[0] * L[3].z);
+                                                                L[0] = (L[1] * (-L[0].z)) + (L[0] * L[1].z);
+                                                            }
+                                                            else
+                                                            {
+                                                                if (config == 15)
+                                                                {
+                                                                    n = 4;
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (n == 3)
+    {
+        L[3] = L[0];
+    }
+    if (n == 4)
+    {
+        L[4] = L[0];
+    }
+}
+
+vec3 _LTC_IntegrateEdgeVec(vec3 v1, vec3 v2)
+{
+    float x = dot(v1, v2);
+    float y = abs(x);
+    float a = 0.8543984889984130859375 + ((0.4965155124664306640625 + (0.01452060043811798095703125 * y)) * y);
+    float b = 3.41759395599365234375 + ((4.1616725921630859375 + y) * y);
+    float v = a / b;
+    float _499;
+    if (x > 0.0)
+    {
+        _499 = v;
+    }
+    else
+    {
+        _499 = (0.5 * inversesqrt(max(1.0 - (x * x), 1.0000000116860974230803549289703e-07))) - v;
+    }
+    float theta_sintheta = _499;
+    return cross(v1, v2) * theta_sintheta;
+}
+
+float _LTC_IntegrateEdge(vec3 v1, vec3 v2)
+{
+    vec3 param = v1;
+    vec3 param_1 = v2;
+    return _LTC_IntegrateEdgeVec(param, param_1).z;
+}
+
+vec3 _LTC_Evaluate(SurfaceParams S, LightParams L, inout mat3 invM)
+{
+    vec3 T1 = normalize(S.vDir - (S.nDir * S.ndv));
+    vec3 T2 = cross(S.nDir, T1);
+    if (L.areaLightShape > 0.5)
+    {
+        mat3 R = transpose(mat3(vec3(T1), vec3(T2), vec3(S.nDir)));
+        vec3 localPoints[5];
+        localPoints[0] = R * (L.areaLightPoints[0] - S.pos);
+        localPoints[1] = R * (L.areaLightPoints[1] - S.pos);
+        localPoints[2] = R * (L.areaLightPoints[2] - S.pos);
+        vec3 Lo_i = vec3(0.0);
+        vec3 C = (localPoints[0] + localPoints[2]) * 0.5;
+        vec3 V1 = (localPoints[1] - localPoints[2]) * 0.5;
+        vec3 V2 = (localPoints[1] - localPoints[0]) * 0.5;
+        C = invM * C;
+        V1 = invM * V1;
+        V2 = invM * V2;
+        if (L.areaLightTwoSide < 0.5)
+        {
+            if (dot(cross(V1, V2), C) < 0.0)
+            {
+                return vec3(0.0);
+            }
+        }
+        float d11 = dot(V1, V1);
+        float d22 = dot(V2, V2);
+        float d12 = dot(V1, V2);
+        float a;
+        float b;
+        if ((abs(d12) / sqrt(d11 * d22)) > 9.9999997473787516355514526367188e-05)
+        {
+            float tr = d11 + d22;
+            float det = ((-d12) * d12) + (d11 * d22);
+            det = sqrt(det);
+            float u = 0.5 * sqrt(tr - (2.0 * det));
+            float v = 0.5 * sqrt(tr + (2.0 * det));
+            float param = u + v;
+            float e_max = Pow2(param);
+            float param_1 = u - v;
+            float e_min = Pow2(param_1);
+            vec3 V1_;
+            vec3 V2_;
+            if (d11 > d22)
+            {
+                V1_ = (V1 * d12) + (V2 * (e_max - d11));
+                V2_ = (V1 * d12) + (V2 * (e_min - d11));
+            }
+            else
+            {
+                V1_ = (V2 * d12) + (V1 * (e_max - d22));
+                V2_ = (V2 * d12) + (V1 * (e_min - d22));
+            }
+            a = 1.0 / e_max;
+            b = 1.0 / e_min;
+            V1 = normalize(V1_);
+            V2 = normalize(V2_);
+        }
+        else
+        {
+            a = 1.0 / dot(V1, V1);
+            b = 1.0 / dot(V2, V2);
+            V1 *= sqrt(a);
+            V2 *= sqrt(b);
+        }
+        vec3 V3 = cross(V1, V2);
+        if (dot(C, V3) < 0.0)
+        {
+            V3 *= (-1.0);
+        }
+        float fL = dot(V3, C);
+        float x0 = dot(V1, C) / fL;
+        float y0 = dot(V2, C) / fL;
+        float E1 = inversesqrt(a);
+        float E2 = inversesqrt(b);
+        a *= (fL * fL);
+        b *= (fL * fL);
+        float c0 = a * b;
+        float c1 = (((a * b) * ((1.0 + (x0 * x0)) + (y0 * y0))) - a) - b;
+        float c2 = (1.0 - (a * (1.0 + (x0 * x0)))) - (b * (1.0 + (y0 * y0)));
+        float c3 = 1.0;
+        vec4 param_2 = vec4(c0, c1, c2, c3);
+        vec3 _1609 = SolveCubic(param_2);
+        vec3 roots = _1609;
+        float e1 = roots.x;
+        float e2 = roots.y;
+        float e3 = roots.z;
+        vec3 avgDir = vec3((a * x0) / (a - e2), (b * y0) / (b - e2), 1.0);
+        mat3 rotate = mat3(vec3(V1), vec3(V2), vec3(V3));
+        avgDir = rotate * avgDir;
+        avgDir = normalize(avgDir);
+        float L1 = sqrt((-e2) / e3);
+        float L2 = sqrt((-e2) / e1);
+        float formFactor = (L1 * L2) * inversesqrt((1.0 + (L1 * L1)) * (1.0 + (L2 * L2)));
+        vec2 uv = vec2((avgDir.z * 0.5) + 0.5, formFactor);
+        uv = (uv * 0.984375) + vec2(0.0078125);
+        float scale = texture(u_ltc_mag, uv).w;
+        float spec = formFactor * scale;
+        return vec3(spec);
+    }
+    else
+    {
+        invM = invM * transpose(mat3(vec3(T1), vec3(T2), vec3(S.nDir)));
+        vec3 localPoints_1[5];
+        localPoints_1[0] = invM * (L.areaLightPoints[0] - S.pos);
+        localPoints_1[1] = invM * (L.areaLightPoints[1] - S.pos);
+        localPoints_1[2] = invM * (L.areaLightPoints[2] - S.pos);
+        localPoints_1[3] = invM * (L.areaLightPoints[3] - S.pos);
+        vec3 param_3[5] = localPoints_1;
+        mediump int param_4;
+        _LTC_ClipQuadToHorizon(param_3, param_4);
+        localPoints_1 = param_3;
+        mediump int n = param_4;
+        if (n == 0)
+        {
+            return vec3(0.0);
+        }
+        localPoints_1[0] = normalize(localPoints_1[0]);
+        localPoints_1[1] = normalize(localPoints_1[1]);
+        localPoints_1[2] = normalize(localPoints_1[2]);
+        localPoints_1[3] = normalize(localPoints_1[3]);
+        localPoints_1[4] = normalize(localPoints_1[4]);
+        float sum = 0.0;
+        vec3 param_5 = localPoints_1[0];
+        vec3 param_6 = localPoints_1[1];
+        sum += _LTC_IntegrateEdge(param_5, param_6);
+        vec3 param_7 = localPoints_1[1];
+        vec3 param_8 = localPoints_1[2];
+        sum += _LTC_IntegrateEdge(param_7, param_8);
+        vec3 param_9 = localPoints_1[2];
+        vec3 param_10 = localPoints_1[3];
+        sum += _LTC_IntegrateEdge(param_9, param_10);
+        if (n >= 4)
+        {
+            vec3 param_11 = localPoints_1[3];
+            vec3 param_12 = localPoints_1[4];
+            sum += _LTC_IntegrateEdge(param_11, param_12);
+        }
+        if (n == 5)
+        {
+            vec3 param_13 = localPoints_1[4];
+            vec3 param_14 = localPoints_1[0];
+            sum += _LTC_IntegrateEdge(param_13, param_14);
+        }
+        if (L.areaLightTwoSide > 0.5)
+        {
+            return vec3(abs(sum));
+        }
+        return vec3(max(0.0, sum));
+    }
+}
+
+vec3 Diffuse_AreaLight(inout SurfaceParams S, inout LightParams L)
+{
+    mat3 invM = mat3(vec3(1.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 0.0, 1.0));
+    SurfaceParams param = S;
+    LightParams param_1 = L;
+    mat3 param_2 = invM;
+    vec3 _1934 = _LTC_Evaluate(param, param_1, param_2);
+    S = param;
+    L = param_1;
+    vec3 lighting = _1934;
+    return (((S.diffCol * L.color) * L.intensity) * L.attenuate) * lighting;
+}
+
+vec2 _LTC_CorrectUV(vec2 uv)
+{
+    return (uv * 0.984375) + vec2(0.0078125);
+}
+
+vec2 _LTC_GetUV(float roughness, float NoV)
+{
+    vec2 uv = vec2(roughness, sqrt(1.0 - NoV));
+    vec2 param = uv;
+    return _LTC_CorrectUV(param);
+}
+
+mat3 _LTC_GetInvM_GGX(vec2 uv)
+{
+    vec4 t = texture(u_ltc_mat, uv);
+    t = (t - vec4(0.5)) * 4.0;
+    return mat3(vec3(vec3(t.x, 0.0, t.y)), vec3(0.0, 1.0, 0.0), vec3(vec3(t.z, 0.0, t.w)));
+}
+
+vec4 _LTC_GetNFC_GGX(vec2 uv)
+{
+    vec4 t2 = texture(u_ltc_mag, uv);
+    return t2;
+}
+
+vec3 Specular_AreaLight(inout SurfaceParams S, inout LightParams L)
+{
+    float param = S.roughParams.x;
+    float param_1 = S.ndv;
+    vec2 uv = _LTC_GetUV(param, param_1);
+    uv = clamp(uv, vec2(0.0), vec2(1.0));
+    vec2 param_2 = uv;
+    mat3 invM = _LTC_GetInvM_GGX(param_2);
+    vec2 param_3 = uv;
+    vec2 nf = _LTC_GetNFC_GGX(param_3).xy;
+    vec3 f0 = S.specCol;
+    vec3 Fr = (f0 * nf.x) + ((vec3(1.0) - f0) * nf.y);
+    SurfaceParams param_4 = S;
+    LightParams param_5 = L;
+    mat3 param_6 = invM;
+    vec3 _1904 = _LTC_Evaluate(param_4, param_5, param_6);
+    S = param_4;
+    L = param_5;
+    vec3 spec = _1904;
+    vec3 lighting = Fr * spec;
+    return ((L.color * L.intensity) * L.attenuate) * lighting;
+}
+
+void DoHeavyAreaLight(inout SurfaceParams S, inout LightParams L, inout vec3 Fd, inout vec3 Fr)
+{
+    if (L.enable > 0.5)
+    {
+        float coatAttenuate = 1.0;
+        SurfaceParams param = S;
+        LightParams param_1 = L;
+        vec3 _3145 = Diffuse_AreaLight(param, param_1);
+        S = param;
+        L = param_1;
+        Fd += (_3145 * coatAttenuate);
+        SurfaceParams param_2 = S;
+        LightParams param_3 = L;
+        vec3 _3156 = Specular_AreaLight(param_2, param_3);
+        S = param_2;
+        L = param_3;
+        Fr += (_3156 * coatAttenuate);
+    }
+}
+
+void DoAreaLight(inout SurfaceParams S, inout LightParams L, inout vec3 Fd, inout vec3 Fr)
+{
+    if (L.enable > 0.5)
+    {
+        SurfaceParams param = S;
+        LightParams param_1 = L;
+        vec3 _3172 = Diffuse_Low(param, param_1);
+        S = param;
+        L = param_1;
+        Fd += _3172;
+        SurfaceParams param_2 = S;
+        LightParams param_3 = L;
+        vec3 _3181 = Specular_Low(param_2, param_3);
+        S = param_2;
+        L = param_3;
+        Fr += _3181;
+    }
+}
+
+vec3 Lighting(inout SurfaceParams S)
+{
+    vec3 Fd = vec3(0.0);
+    vec3 Fr = vec3(0.0);
+    vec3 finalRGB = vec3(0.0);
+    SurfaceParams param = S;
+    vec3 param_1 = Fd;
+    vec3 param_2 = Fr;
+    DoIndirectLight(param, param_1, param_2);
+    S = param;
+    Fd = param_1;
+    Fr = param_2;
+    SurfaceParams param_3 = S;
+    mediump int param_4 = 0;
+    LightParams param_5;
+    BuildDirLightParams(param_3, param_4, param_5);
+    S = param_3;
+    LightParams DL0 = param_5;
+    SurfaceParams param_6 = S;
+    LightParams param_7 = DL0;
+    vec3 param_8 = Fd;
+    vec3 param_9 = Fr;
+    DoHeavyLight(param_6, param_7, param_8, param_9);
+    S = param_6;
+    DL0 = param_7;
+    Fd = param_8;
+    Fr = param_9;
+    SurfaceParams param_10 = S;
+    mediump int param_11 = 1;
+    LightParams param_12;
+    BuildDirLightParams(param_10, param_11, param_12);
+    S = param_10;
+    LightParams DL1 = param_12;
+    SurfaceParams param_13 = S;
+    LightParams param_14 = DL1;
+    vec3 param_15 = Fd;
+    vec3 param_16 = Fr;
+    DoLight(param_13, param_14, param_15, param_16);
+    S = param_13;
+    DL1 = param_14;
+    Fd = param_15;
+    Fr = param_16;
+    SurfaceParams param_17 = S;
+    mediump int param_18 = 2;
+    LightParams param_19;
+    BuildDirLightParams(param_17, param_18, param_19);
+    S = param_17;
+    LightParams DL2 = param_19;
+    SurfaceParams param_20 = S;
+    LightParams param_21 = DL2;
+    vec3 param_22 = Fd;
+    vec3 param_23 = Fr;
+    DoLight(param_20, param_21, param_22, param_23);
+    S = param_20;
+    DL2 = param_21;
+    Fd = param_22;
+    Fr = param_23;
+    SurfaceParams param_24 = S;
+    mediump int param_25 = 0;
+    LightParams param_26;
+    BuildPointLightParams(param_24, param_25, param_26);
+    S = param_24;
+    LightParams PL0 = param_26;
+    SurfaceParams param_27 = S;
+    LightParams param_28 = PL0;
+    vec3 param_29 = Fd;
+    vec3 param_30 = Fr;
+    DoHeavyLight(param_27, param_28, param_29, param_30);
+    S = param_27;
+    PL0 = param_28;
+    Fd = param_29;
+    Fr = param_30;
+    SurfaceParams param_31 = S;
+    mediump int param_32 = 1;
+    LightParams param_33;
+    BuildPointLightParams(param_31, param_32, param_33);
+    S = param_31;
+    LightParams PL1 = param_33;
+    SurfaceParams param_34 = S;
+    LightParams param_35 = PL1;
+    vec3 param_36 = Fd;
+    vec3 param_37 = Fr;
+    DoLight(param_34, param_35, param_36, param_37);
+    S = param_34;
+    PL1 = param_35;
+    Fd = param_36;
+    Fr = param_37;
+    SurfaceParams param_38 = S;
+    mediump int param_39 = 0;
+    LightParams param_40;
+    BuildSpotLightParams(param_38, param_39, param_40);
+    S = param_38;
+    LightParams SL0 = param_40;
+    SurfaceParams param_41 = S;
+    LightParams param_42 = SL0;
+    vec3 param_43 = Fd;
+    vec3 param_44 = Fr;
+    DoHeavyLight(param_41, param_42, param_43, param_44);
+    S = param_41;
+    SL0 = param_42;
+    Fd = param_43;
+    Fr = param_44;
+    SurfaceParams param_45 = S;
+    mediump int param_46 = 1;
+    LightParams param_47;
+    BuildSpotLightParams(param_45, param_46, param_47);
+    S = param_45;
+    LightParams SL1 = param_47;
+    SurfaceParams param_48 = S;
+    LightParams param_49 = SL1;
+    vec3 param_50 = Fd;
+    vec3 param_51 = Fr;
+    DoLight(param_48, param_49, param_50, param_51);
+    S = param_48;
+    SL1 = param_49;
+    Fd = param_50;
+    Fr = param_51;
+    SurfaceParams param_52 = S;
+    mediump int param_53 = 0;
+    LightParams param_54;
+    BuildAreaLightParams(param_52, param_53, param_54);
+    S = param_52;
+    LightParams AL0 = param_54;
+    SurfaceParams param_55 = S;
+    LightParams param_56 = AL0;
+    vec3 param_57 = Fd;
+    vec3 param_58 = Fr;
+    DoHeavyAreaLight(param_55, param_56, param_57, param_58);
+    S = param_55;
+    AL0 = param_56;
+    Fd = param_57;
+    Fr = param_58;
+    SurfaceParams param_59 = S;
+    mediump int param_60 = 1;
+    LightParams param_61;
+    BuildAreaLightParams(param_59, param_60, param_61);
+    S = param_59;
+    LightParams AL1 = param_61;
+    SurfaceParams param_62 = S;
+    LightParams param_63 = AL1;
+    vec3 param_64 = Fd;
+    vec3 param_65 = Fr;
+    DoAreaLight(param_62, param_63, param_64, param_65);
+    S = param_62;
+    AL1 = param_63;
+    Fd = param_64;
+    Fr = param_65;
+    finalRGB = Fd + Fr;
+    return finalRGB;
+}
+
+vec3 LinearToGamma(vec3 col)
+{
+    vec3 param = col;
+    vec3 param_1 = vec3(0.4545454680919647216796875);
+    vec3 _393 = SafePow(param, param_1);
+    return _393;
+}
+
+vec4 MainEntry()
+{
+    SurfaceParams param;
+    BuildSurfaceParams(param);
+    SurfaceParams S = param;
+    SurfaceParams param_1 = S;
+    vec3 _3554 = Lighting(param_1);
+    S = param_1;
+    vec3 finalRGB = _3554;
+    vec3 param_2 = finalRGB;
+    finalRGB = LinearToGamma(param_2);
+    vec4 result = vec4(finalRGB, S.opacity);
+    return result;
+}
+
+vec4 ApplyBlendMode(vec4 color, vec2 uv)
+{
+    vec4 ret = color;
+    return ret;
+}
 
 void main()
 {
-    vec3 _3664 = normalize(v_nDirWS);
-    vec3 _3669 = normalize(u_WorldSpaceCameraPos.xyz - v_posWS);
-    vec3 _12852;
-    if (dot(_3669, _3664) < (-0.0500000007450580596923828125))
-    {
-        _12852 = -_3664;
-    }
-    else
-    {
-        _12852 = _3664;
-    }
-    vec3 _3762 = pow(max(_AlbedoColor.xyz, vec3(9.9999997473787516355514526367188e-06)), vec3(2.2000000476837158203125));
-    float _3766 = clamp(_Metallic, 0.0, 1.0);
-    float _3702 = clamp(_Roughness, 0.0, 1.0);
-    float _3771 = _3702 * _3702;
-    float _3776 = _3771 * _3771;
-    vec3 _3716 = _3762 * (1.0 - _3766);
-    float _3727 = max(0.0, dot(_12852, _3669));
-    vec3 _3745 = mix(vec3(0.0400000028312206268310546875), _3762, vec3(_3766));
-    vec3 _4063 = normalize(_12852);
-    float _4066 = -_4063.z;
-    float _4068 = _4063.x;
-    float _4107 = clamp(_4066 / length(vec2(_4068, _4066)), -1.0, 1.0);
-    float _4116 = abs(_4107);
-    float _4119 = (-0.15658299624919891357421875) * _4116 + 1.57079601287841796875;
-    float _4122 = sqrt(1.0 - _4116);
-    float _12855;
-    if (_4107 >= 0.0)
-    {
-        _12855 = _4119 * _4122;
-    }
-    else
-    {
-        _12855 = (-_4119) * _4122 + 3.1415927410125732421875;
-    }
-    float _4075 = acos(_4063.y);
-    float _4081 = (((_4068 < 0.0) ? (-1.0) : 1.0) * _12855 + (-1.57079637050628662109375)) * 0.15915493667125701904296875 + _EnvRot;
-    float _4090 = fract((_4081 + floor(_4081)) + 1.0);
-    float _4143 = floor(7.0);
-    vec2 _12859;
-    vec2 _12866;
-    if (abs(_4143) < 0.001000000047497451305389404296875)
-    {
-        _12866 = vec2((_4090 * 0.99609375 + 0.001953125) * 0.5, (_4075 * 0.315823078155517578125 + 0.00390625) * 0.25 + 0.5);
-        _12859 = vec2(_4090 * 0.998046875 + 0.0009765625, (_4075 * 0.3170664608478546142578125 + 0.001953125) * 0.5);
-    }
-    else
-    {
-        vec2 _12860;
-        vec2 _12867;
-        if (abs(_4143 - 1.0) < 0.001000000047497451305389404296875)
-        {
-            float _4196 = _4090 * 0.99609375 + 0.001953125;
-            float _4206 = (_4075 * 0.315823078155517578125 + 0.00390625) * 0.25 + 0.5;
-            _12867 = vec2(_4196 * 0.5 + 0.5, _4206);
-            _12860 = vec2(_4196 * 0.5, _4206);
-        }
-        else
-        {
-            vec2 _12861;
-            vec2 _12868;
-            if (abs(_4143 - 2.0) < 0.001000000047497451305389404296875)
-            {
-                float _4234 = _4090 * 0.99609375 + 0.001953125;
-                float _4242 = _4075 * 0.315823078155517578125 + 0.00390625;
-                _12868 = vec2(_4234 * 0.5, _4242 * 0.25 + 0.75);
-                _12861 = vec2(_4234 * 0.5 + 0.5, _4242 * 0.25 + 0.5);
-            }
-            else
-            {
-                vec2 _12862;
-                vec2 _12869;
-                if (abs(_4143 - 3.0) < 0.001000000047497451305389404296875)
-                {
-                    _12869 = vec2((_4090 * 0.9921875 + 0.00390625) * 0.25 + 0.5, (_4075 * 0.3133362829685211181640625 + 0.0078125) * 0.125 + 0.75);
-                    _12862 = vec2((_4090 * 0.99609375 + 0.001953125) * 0.5, (_4075 * 0.315823078155517578125 + 0.00390625) * 0.25 + 0.75);
-                }
-                else
-                {
-                    vec2 _12863;
-                    vec2 _12870;
-                    if (abs(_4143 - 4.0) < 0.001000000047497451305389404296875)
-                    {
-                        float _4310 = _4090 * 0.9921875 + 0.00390625;
-                        float _4320 = (_4075 * 0.3133362829685211181640625 + 0.0078125) * 0.125 + 0.75;
-                        _12870 = vec2(_4310 * 0.25 + 0.75, _4320);
-                        _12863 = vec2(_4310 * 0.25 + 0.5, _4320);
-                    }
-                    else
-                    {
-                        vec2 _12864;
-                        vec2 _12871;
-                        if (abs(_4143 - 5.0) < 0.001000000047497451305389404296875)
-                        {
-                            float _4348 = _4090 * 0.9921875 + 0.00390625;
-                            float _4356 = _4075 * 0.3133362829685211181640625 + 0.0078125;
-                            _12871 = vec2(_4348 * 0.25 + 0.5, _4356 * 0.125 + 0.875);
-                            _12864 = vec2(_4348 * 0.25 + 0.75, _4356 * 0.125 + 0.75);
-                        }
-                        else
-                        {
-                            vec2 _12865;
-                            vec2 _12872;
-                            if (abs(_4143 - 6.0) < 0.001000000047497451305389404296875)
-                            {
-                                float _4386 = _4090 * 0.9921875 + 0.00390625;
-                                float _4396 = (_4075 * 0.3133362829685211181640625 + 0.0078125) * 0.125 + 0.875;
-                                _12872 = vec2(_4386 * 0.25 + 0.75, _4396);
-                                _12865 = vec2(_4386 * 0.25 + 0.5, _4396);
-                            }
-                            else
-                            {
-                                vec2 _15836 = vec2((_4090 * 0.9921875 + 0.00390625) * 0.25 + 0.75, (_4075 * 0.3133362829685211181640625 + 0.0078125) * 0.125 + 0.875);
-                                _12872 = _15836;
-                                _12865 = _15836;
-                            }
-                            _12871 = _12872;
-                            _12864 = _12865;
-                        }
-                        _12870 = _12871;
-                        _12863 = _12864;
-                    }
-                    _12869 = _12870;
-                    _12862 = _12863;
-                }
-                _12868 = _12869;
-                _12861 = _12862;
-            }
-            _12867 = _12868;
-            _12860 = _12861;
-        }
-        _12866 = _12867;
-        _12859 = _12860;
-    }
-    mediump vec4 _4456 = texture(_EnvTex, _12859);
-    mediump vec4 _4459 = texture(_EnvTex, _12866);
-    vec4 _4462 = mix(_4456, _4459, vec4(7.0 - _4143));
-    vec3 _4006 = ((_3716 * ((_4462.xyz / vec3(_4462.w)) * _Env)) * max(vec3(1.0), ((((((_3716 * 2.040400028228759765625) - vec3(0.3323999941349029541015625)) * 1.0) + ((_3716 * (-4.79510021209716796875)) + vec3(0.6417000293731689453125))) * 1.0) + ((_3716 * 2.755199909210205078125) + vec3(0.69029998779296875))) * 1.0)) * 1.0;
-    vec3 _4565 = normalize(mix(normalize(reflect(-_3669, _12852)), _12852, vec3(_3702 * _3771)));
-    float _4568 = -_4565.z;
-    float _4570 = _4565.x;
-    float _4609 = clamp(_4568 / length(vec2(_4570, _4568)), -1.0, 1.0);
-    float _4618 = abs(_4609);
-    float _4621 = (-0.15658299624919891357421875) * _4618 + 1.57079601287841796875;
-    float _4624 = sqrt(1.0 - _4618);
-    float _12881;
-    if (_4609 >= 0.0)
-    {
-        _12881 = _4621 * _4624;
-    }
-    else
-    {
-        _12881 = (-_4621) * _4624 + 3.1415927410125732421875;
-    }
-    float _4577 = acos(_4565.y);
-    float _4583 = (((_4570 < 0.0) ? (-1.0) : 1.0) * _12881 + (-1.57079637050628662109375)) * 0.15915493667125701904296875 + _EnvRot;
-    float _4592 = fract((_4583 + floor(_4583)) + 1.0);
-    float _4645 = floor(_3702 * 7.0);
-    vec2 _12892;
-    vec2 _12899;
-    if (abs(_4645) < 0.001000000047497451305389404296875)
-    {
-        _12899 = vec2((_4592 * 0.99609375 + 0.001953125) * 0.5, (_4577 * 0.315823078155517578125 + 0.00390625) * 0.25 + 0.5);
-        _12892 = vec2(_4592 * 0.998046875 + 0.0009765625, (_4577 * 0.3170664608478546142578125 + 0.001953125) * 0.5);
-    }
-    else
-    {
-        vec2 _12893;
-        vec2 _12900;
-        if (abs(_4645 - 1.0) < 0.001000000047497451305389404296875)
-        {
-            float _4698 = _4592 * 0.99609375 + 0.001953125;
-            float _4708 = (_4577 * 0.315823078155517578125 + 0.00390625) * 0.25 + 0.5;
-            _12900 = vec2(_4698 * 0.5 + 0.5, _4708);
-            _12893 = vec2(_4698 * 0.5, _4708);
-        }
-        else
-        {
-            vec2 _12894;
-            vec2 _12901;
-            if (abs(_4645 - 2.0) < 0.001000000047497451305389404296875)
-            {
-                float _4736 = _4592 * 0.99609375 + 0.001953125;
-                float _4744 = _4577 * 0.315823078155517578125 + 0.00390625;
-                _12901 = vec2(_4736 * 0.5, _4744 * 0.25 + 0.75);
-                _12894 = vec2(_4736 * 0.5 + 0.5, _4744 * 0.25 + 0.5);
-            }
-            else
-            {
-                vec2 _12895;
-                vec2 _12902;
-                if (abs(_4645 - 3.0) < 0.001000000047497451305389404296875)
-                {
-                    _12902 = vec2((_4592 * 0.9921875 + 0.00390625) * 0.25 + 0.5, (_4577 * 0.3133362829685211181640625 + 0.0078125) * 0.125 + 0.75);
-                    _12895 = vec2((_4592 * 0.99609375 + 0.001953125) * 0.5, (_4577 * 0.315823078155517578125 + 0.00390625) * 0.25 + 0.75);
-                }
-                else
-                {
-                    vec2 _12896;
-                    vec2 _12903;
-                    if (abs(_4645 - 4.0) < 0.001000000047497451305389404296875)
-                    {
-                        float _4812 = _4592 * 0.9921875 + 0.00390625;
-                        float _4822 = (_4577 * 0.3133362829685211181640625 + 0.0078125) * 0.125 + 0.75;
-                        _12903 = vec2(_4812 * 0.25 + 0.75, _4822);
-                        _12896 = vec2(_4812 * 0.25 + 0.5, _4822);
-                    }
-                    else
-                    {
-                        vec2 _12897;
-                        vec2 _12904;
-                        if (abs(_4645 - 5.0) < 0.001000000047497451305389404296875)
-                        {
-                            float _4850 = _4592 * 0.9921875 + 0.00390625;
-                            float _4858 = _4577 * 0.3133362829685211181640625 + 0.0078125;
-                            _12904 = vec2(_4850 * 0.25 + 0.5, _4858 * 0.125 + 0.875);
-                            _12897 = vec2(_4850 * 0.25 + 0.75, _4858 * 0.125 + 0.75);
-                        }
-                        else
-                        {
-                            vec2 _12898;
-                            vec2 _12905;
-                            if (abs(_4645 - 6.0) < 0.001000000047497451305389404296875)
-                            {
-                                float _4888 = _4592 * 0.9921875 + 0.00390625;
-                                float _4898 = (_4577 * 0.3133362829685211181640625 + 0.0078125) * 0.125 + 0.875;
-                                _12905 = vec2(_4888 * 0.25 + 0.75, _4898);
-                                _12898 = vec2(_4888 * 0.25 + 0.5, _4898);
-                            }
-                            else
-                            {
-                                vec2 _15861 = vec2((_4592 * 0.9921875 + 0.00390625) * 0.25 + 0.75, (_4577 * 0.3133362829685211181640625 + 0.0078125) * 0.125 + 0.875);
-                                _12905 = _15861;
-                                _12898 = _15861;
-                            }
-                            _12904 = _12905;
-                            _12897 = _12898;
-                        }
-                        _12903 = _12904;
-                        _12896 = _12897;
-                    }
-                    _12902 = _12903;
-                    _12895 = _12896;
-                }
-                _12901 = _12902;
-                _12894 = _12895;
-            }
-            _12900 = _12901;
-            _12893 = _12894;
-        }
-        _12899 = _12900;
-        _12892 = _12893;
-    }
-    vec4 _4964 = mix(texture(_EnvTex, _12892), texture(_EnvTex, _12899), vec4(_3702 * 7.0 + (-_4645)));
-    vec4 _4991 = (vec4(-1.0, -0.0274999998509883880615234375, -0.572000026702880859375, 0.02199999988079071044921875) * _3702) + vec4(1.0, 0.0425000004470348358154296875, 1.03999996185302734375, -0.039999999105930328369140625);
-    float _4993 = _4991.x;
-    vec2 _5011 = (vec2(-1.03999996185302734375, 1.03999996185302734375) * (min(_4993 * _4993, exp2((-9.27999973297119140625) * _3727)) * _4993 + _4991.y)) + _4991.zw;
-    vec3 _4013 = ((((_3745 * _5011.x) + vec3(_5011.y * clamp(50.0 * _3745.y, 0.0, 1.0))) * max(vec3(1.0), ((((((_3745 * 2.040400028228759765625) - vec3(0.3323999941349029541015625)) * 1.0) + ((_3745 * (-4.79510021209716796875)) + vec3(0.6417000293731689453125))) * 1.0) + ((_3745 * 2.755199909210205078125) + vec3(0.69029998779296875))) * 1.0)) * ((_4964.xyz / vec3(_4964.w)) * _Env)) * 1.0;
-    vec3 _5075 = normalize(-u_DirLightsDirection[0].xyz);
-    float _5089 = (u_DirLightsIntensity[0] * u_DirLightsEnabled[0]) * 3.1415920257568359375;
-    vec3 _5103 = normalize(_5075 + _3669);
-    float _5117 = max(0.0, dot(_12852, _5075));
-    float _5124 = max(0.0, dot(_12852, _5103));
-    vec3 _13118;
-    vec3 _13119;
-    if (u_DirLightsEnabled[0] > 0.5)
-    {
-        float _5268 = 1.0 - max(0.0, max(0.0, dot(_3669, _5103)));
-        float _5282 = _5268 * _5268;
-        float _5295 = 1.0 - _5117;
-        float _5323 = (_5124 * _3776 + (-_5124)) * _5124 + 1.0;
-        _13119 = _4013 + ((((((_3745 + ((vec3(1.0) - _3745) * ((_5282 * _5282) * _5268))) * (((_3776 * 0.31830990314483642578125) / (_5323 * _5323 + 1.0000000116860974230803549289703e-07)) * (0.5 / ((_3771 * (_3727 * _5295 + _5117) + (_3727 * (_3771 * _5295 + _5117))) + 9.9999997473787516355514526367188e-06)))) * _5117) * u_DirLightsColor[0].xyz) * _5089) * 1.0);
-        _13118 = _4006 + ((((_3716 * u_DirLightsColor[0].xyz) * _5089) * (_5117 * 0.31830990314483642578125)) * 1.0);
-    }
-    else
-    {
-        _13119 = _4013;
-        _13118 = _4006;
-    }
-    vec3 _5343 = normalize(-u_DirLightsDirection[1].xyz);
-    float _5357 = (u_DirLightsIntensity[1] * u_DirLightsEnabled[1]) * 3.1415920257568359375;
-    vec3 _5371 = normalize(_5343 + _3669);
-    float _5385 = max(0.0, dot(_12852, _5343));
-    float _5392 = max(0.0, dot(_12852, _5371));
-    vec3 _13318;
-    vec3 _13319;
-    if (u_DirLightsEnabled[1] > 0.5)
-    {
-        float _5528 = 1.0 - max(0.0, max(0.0, dot(_3669, _5371)));
-        float _5542 = _5528 * _5528;
-        float _5560 = (_5392 * _3776 + (-_5392)) * _5392 + 1.0;
-        _13319 = _13119 + ((((((_3745 + ((vec3(1.0) - _3745) * ((_5542 * _5542) * _5528))) * (((_3776 * 0.31830990314483642578125) / (_5560 * _5560 + 1.0000000116860974230803549289703e-07)) * 0.25)) * _5385) * u_DirLightsColor[1].xyz) * _5357) * 1.0);
-        _13318 = _13118 + ((((_3716 * u_DirLightsColor[1].xyz) * _5357) * (_5385 * 0.31830990314483642578125)) * 1.0);
-    }
-    else
-    {
-        _13319 = _13119;
-        _13318 = _13118;
-    }
-    vec3 _5580 = normalize(-u_DirLightsDirection[2].xyz);
-    float _5594 = (u_DirLightsIntensity[2] * u_DirLightsEnabled[2]) * 3.1415920257568359375;
-    vec3 _5608 = normalize(_5580 + _3669);
-    float _5622 = max(0.0, dot(_12852, _5580));
-    float _5629 = max(0.0, dot(_12852, _5608));
-    vec3 _13529;
-    vec3 _13530;
-    if (u_DirLightsEnabled[2] > 0.5)
-    {
-        float _5765 = 1.0 - max(0.0, max(0.0, dot(_3669, _5608)));
-        float _5779 = _5765 * _5765;
-        float _5797 = (_5629 * _3776 + (-_5629)) * _5629 + 1.0;
-        _13530 = _13319 + ((((((_3745 + ((vec3(1.0) - _3745) * ((_5779 * _5779) * _5765))) * (((_3776 * 0.31830990314483642578125) / (_5797 * _5797 + 1.0000000116860974230803549289703e-07)) * 0.25)) * _5622) * u_DirLightsColor[2].xyz) * _5594) * 1.0);
-        _13529 = _13318 + ((((_3716 * u_DirLightsColor[2].xyz) * _5594) * (_5622 * 0.31830990314483642578125)) * 1.0);
-    }
-    else
-    {
-        _13530 = _13319;
-        _13529 = _13318;
-    }
-    vec3 _5826 = u_PointLightsPosition[0].xyz - v_posWS;
-    float _5828 = length(_5826);
-    vec3 _5832 = _5826 / vec3(_5828);
-    float _5846 = (u_PointLightsIntensity[0] * u_PointLightsEnabled[0]) * 3.1415920257568359375;
-    float _5853 = _5828 * u_PointLightsAttenRangeInv[0];
-    float _5879 = _5853 * _5853;
-    float _5886 = clamp((-_5879) * _5879 + 1.0, 0.0, 1.0);
-    vec3 _5867 = vec3(((_5886 * _5886) * (_5853 * _5853 + 1.0)) * 0.25);
-    vec3 _5903 = normalize(_5832 + _3669);
-    float _5917 = max(0.0, dot(_12852, _5832));
-    float _5924 = max(0.0, dot(_12852, _5903));
-    vec3 _13751;
-    vec3 _13752;
-    if (u_PointLightsEnabled[0] > 0.5)
-    {
-        float _6068 = 1.0 - max(0.0, max(0.0, dot(_3669, _5903)));
-        float _6082 = _6068 * _6068;
-        float _6095 = 1.0 - _5917;
-        float _6123 = (_5924 * _3776 + (-_5924)) * _5924 + 1.0;
-        _13752 = _13530 + (((((((_3745 + ((vec3(1.0) - _3745) * ((_6082 * _6082) * _6068))) * (((_3776 * 0.31830990314483642578125) / (_6123 * _6123 + 1.0000000116860974230803549289703e-07)) * (0.5 / ((_3771 * (_3727 * _6095 + _5917) + (_3727 * (_3771 * _6095 + _5917))) + 9.9999997473787516355514526367188e-06)))) * _5917) * u_PointLightsColor[0].xyz) * _5846) * _5867) * 1.0);
-        _13751 = _13529 + (((((_3716 * u_PointLightsColor[0].xyz) * _5846) * _5867) * (_5917 * 0.31830990314483642578125)) * 1.0);
-    }
-    else
-    {
-        _13752 = _13530;
-        _13751 = _13529;
-    }
-    vec3 _6152 = u_PointLightsPosition[1].xyz - v_posWS;
-    float _6154 = length(_6152);
-    vec3 _6158 = _6152 / vec3(_6154);
-    float _6172 = (u_PointLightsIntensity[1] * u_PointLightsEnabled[1]) * 3.1415920257568359375;
-    float _6179 = _6154 * u_PointLightsAttenRangeInv[1];
-    float _6205 = _6179 * _6179;
-    float _6212 = clamp((-_6205) * _6205 + 1.0, 0.0, 1.0);
-    vec3 _6193 = vec3(((_6212 * _6212) * (_6179 * _6179 + 1.0)) * 0.25);
-    vec3 _6229 = normalize(_6158 + _3669);
-    float _6243 = max(0.0, dot(_12852, _6158));
-    float _6250 = max(0.0, dot(_12852, _6229));
-    vec3 _13984;
-    vec3 _13985;
-    if (u_PointLightsEnabled[1] > 0.5)
-    {
-        float _6386 = 1.0 - max(0.0, max(0.0, dot(_3669, _6229)));
-        float _6400 = _6386 * _6386;
-        float _6418 = (_6250 * _3776 + (-_6250)) * _6250 + 1.0;
-        _13985 = _13752 + (((((((_3745 + ((vec3(1.0) - _3745) * ((_6400 * _6400) * _6386))) * (((_3776 * 0.31830990314483642578125) / (_6418 * _6418 + 1.0000000116860974230803549289703e-07)) * 0.25)) * _6243) * u_PointLightsColor[1].xyz) * _6172) * _6193) * 1.0);
-        _13984 = _13751 + (((((_3716 * u_PointLightsColor[1].xyz) * _6172) * _6193) * (_6243 * 0.31830990314483642578125)) * 1.0);
-    }
-    else
-    {
-        _13985 = _13752;
-        _13984 = _13751;
-    }
-    vec3 _6449 = u_SpotLightsPosition[0].xyz - v_posWS;
-    float _6451 = length(_6449);
-    vec3 _6455 = _6449 / vec3(_6451);
-    float _6469 = (u_SpotLightsIntensity[0] * u_SpotLightsEnabled[0]) * 3.1415920257568359375;
-    float _6476 = _6451 * u_SpotLightsAttenRangeInv[0];
-    float _6523 = _6476 * _6476;
-    float _6530 = clamp((-_6523) * _6523 + 1.0, 0.0, 1.0);
-    vec3 _6511 = vec3((((_6530 * _6530) * (_6476 * _6476 + 1.0)) * 0.25) * smoothstep(u_SpotLightsOuterAngleCos[0], u_SpotLightsInnerAngleCos[0], max(0.0, dot(_6455, normalize(-u_SpotLightsDirection[0].xyz)))));
-    vec3 _6547 = normalize(_6455 + _3669);
-    float _6561 = max(0.0, dot(_12852, _6455));
-    float _6568 = max(0.0, dot(_12852, _6547));
-    vec3 _14228;
-    vec3 _14229;
-    if (u_SpotLightsEnabled[0] > 0.5)
-    {
-        float _6712 = 1.0 - max(0.0, max(0.0, dot(_3669, _6547)));
-        float _6726 = _6712 * _6712;
-        float _6739 = 1.0 - _6561;
-        float _6767 = (_6568 * _3776 + (-_6568)) * _6568 + 1.0;
-        _14229 = _13985 + (((((((_3745 + ((vec3(1.0) - _3745) * ((_6726 * _6726) * _6712))) * (((_3776 * 0.31830990314483642578125) / (_6767 * _6767 + 1.0000000116860974230803549289703e-07)) * (0.5 / ((_3771 * (_3727 * _6739 + _6561) + (_3727 * (_3771 * _6739 + _6561))) + 9.9999997473787516355514526367188e-06)))) * _6561) * u_SpotLightsColor[0].xyz) * _6469) * _6511) * 1.0);
-        _14228 = _13984 + (((((_3716 * u_SpotLightsColor[0].xyz) * _6469) * _6511) * (_6561 * 0.31830990314483642578125)) * 1.0);
-    }
-    else
-    {
-        _14229 = _13985;
-        _14228 = _13984;
-    }
-    vec3 _6798 = u_SpotLightsPosition[1].xyz - v_posWS;
-    float _6800 = length(_6798);
-    vec3 _6804 = _6798 / vec3(_6800);
-    float _6818 = (u_SpotLightsIntensity[1] * u_SpotLightsEnabled[1]) * 3.1415920257568359375;
-    float _6825 = _6800 * u_SpotLightsAttenRangeInv[1];
-    float _6872 = _6825 * _6825;
-    float _6879 = clamp((-_6872) * _6872 + 1.0, 0.0, 1.0);
-    vec3 _6860 = vec3((((_6879 * _6879) * (_6825 * _6825 + 1.0)) * 0.25) * smoothstep(u_SpotLightsOuterAngleCos[1], u_SpotLightsInnerAngleCos[1], max(0.0, dot(_6804, normalize(-u_SpotLightsDirection[1].xyz)))));
-    vec3 _6896 = normalize(_6804 + _3669);
-    float _6910 = max(0.0, dot(_12852, _6804));
-    float _6917 = max(0.0, dot(_12852, _6896));
-    vec3 _14483;
-    vec3 _14484;
-    if (u_SpotLightsEnabled[1] > 0.5)
-    {
-        float _7053 = 1.0 - max(0.0, max(0.0, dot(_3669, _6896)));
-        float _7067 = _7053 * _7053;
-        float _7085 = (_6917 * _3776 + (-_6917)) * _6917 + 1.0;
-        _14484 = _14229 + (((((((_3745 + ((vec3(1.0) - _3745) * ((_7067 * _7067) * _7053))) * (((_3776 * 0.31830990314483642578125) / (_7085 * _7085 + 1.0000000116860974230803549289703e-07)) * 0.25)) * _6910) * u_SpotLightsColor[1].xyz) * _6818) * _6860) * 1.0);
-        _14483 = _14228 + (((((_3716 * u_SpotLightsColor[1].xyz) * _6818) * _6860) * (_6910 * 0.31830990314483642578125)) * 1.0);
-    }
-    else
-    {
-        _14484 = _14229;
-        _14483 = _14228;
-    }
-    float _7115 = (u_AreaLightsIntensity[0] * u_AreaLightsEnabled[0]) * 3.1415920257568359375;
-    vec3 _15245;
-    vec3 _15286;
-    if (u_AreaLightsEnabled[0] > 0.5)
-    {
-        vec3 _7275;
-        vec3 _7279;
-        bool _7282;
-        vec3 _14838;
-        do
-        {
-            _7275 = normalize(_3669 - (_12852 * _3727));
-            _7279 = cross(_12852, _7275);
-            _7282 = u_AreaLightsShape[0] > 0.5;
-            if (_7282)
-            {
-                mat3 _7301 = transpose(mat3(_7275, _7279, _12852));
-                vec3 _7308 = _7301 * (u_AreaLightsPoint0[0].xyz - v_posWS);
-                vec3 _7316 = _7301 * (u_AreaLightsPoint1[0].xyz - v_posWS);
-                vec3 _7324 = _7301 * (u_AreaLightsPoint2[0].xyz - v_posWS);
-                vec3 _7346 = mat3(vec3(1.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 0.0, 1.0)) * ((_7308 + _7324) * 0.5);
-                vec3 _7349 = mat3(vec3(1.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 0.0, 1.0)) * ((_7316 - _7324) * 0.5);
-                vec3 _7352 = mat3(vec3(1.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 0.0, 1.0)) * ((_7316 - _7308) * 0.5);
-                if (u_AreaLightsTwoSide[0] < 0.5)
-                {
-                    if (dot(cross(_7349, _7352), _7346) < 0.0)
-                    {
-                        _14838 = vec3(0.0);
-                        break;
-                    }
-                }
-                float _7368 = dot(_7349, _7349);
-                float _7371 = dot(_7352, _7352);
-                float _7374 = dot(_7349, _7352);
-                float _7379 = _7368 * _7371;
-                vec3 _14793;
-                vec3 _14794;
-                float _14799;
-                float _14801;
-                if ((abs(_7374) / sqrt(_7379)) > 9.9999997473787516355514526367188e-05)
-                {
-                    float _7386 = _7368 + _7371;
-                    float _7396 = sqrt((-_7374) * _7374 + _7379);
-                    float _7401 = sqrt((-2.0) * _7396 + _7386);
-                    float _7407 = sqrt(2.0 * _7396 + _7386);
-                    float _7411 = 0.5 * _7401 + (0.5 * _7407);
-                    float _7415 = 0.5 * _7401 + (_7407 * (-0.5));
-                    vec3 _14791;
-                    vec3 _14792;
-                    if (_7368 > _7371)
-                    {
-                        vec3 _7423 = _7349 * _7374;
-                        float _15901 = -_7368;
-                        _14792 = _7423 + (_7352 * (_7415 * _7415 + _15901));
-                        _14791 = _7423 + (_7352 * (_7411 * _7411 + _15901));
-                    }
-                    else
-                    {
-                        vec3 _7442 = _7352 * _7374;
-                        float _15899 = -_7371;
-                        _14792 = _7442 + (_7349 * (_7415 * _7415 + _15899));
-                        _14791 = _7442 + (_7349 * (_7411 * _7411 + _15899));
-                    }
-                    _14801 = 1.0 / (_7415 * _7415);
-                    _14799 = 1.0 / (_7411 * _7411);
-                    _14794 = normalize(_14792);
-                    _14793 = normalize(_14791);
-                }
-                else
-                {
-                    float _7471 = 1.0 / _7368;
-                    float _7475 = 1.0 / _7371;
-                    _14801 = _7475;
-                    _14799 = _7471;
-                    _14794 = _7352 * sqrt(_7475);
-                    _14793 = _7349 * sqrt(_7471);
-                }
-                vec3 _7487 = cross(_14793, _14794);
-                vec3 _14795;
-                if (dot(_7346, _7487) < 0.0)
-                {
-                    _14795 = _7487 * (-1.0);
-                }
-                else
-                {
-                    _14795 = _7487;
-                }
-                float _7498 = dot(_14795, _7346);
-                float _7503 = dot(_14793, _7346) / _7498;
-                float _7508 = dot(_14794, _7346) / _7498;
-                float _7515 = _7498 * _7498;
-                float _7517 = _14799 * _7515;
-                float _7522 = _14801 * _7515;
-                float _7525 = _7517 * _7522;
-                float _7532 = _7503 * _7503 + 1.0;
-                float _15903 = -_7517;
-                vec4 _12628 = _15940;
-                _12628.x = _7525;
-                vec4 _12630 = _12628;
-                _12630.y = (-_14801) * _7515 + (_7525 * (_7508 * _7508 + _7532) + _15903);
-                vec4 _12632 = _12630;
-                _12632.z = (-_7522) * (_7508 * _7508 + 1.0) + (_15903 * _7532 + 1.0);
-                vec2 _7839 = _12632.yz * vec2(0.3333333432674407958984375);
-                float _7841 = _7839.x;
-                vec4 _12634 = _12632;
-                _12634.y = _7841;
-                float _7843 = _7839.y;
-                float _7854 = -_7843;
-                float _7860 = _7854 * _7843 + _7841;
-                float _7863 = -_7841;
-                float _7869 = _7863 * _7843 + _7525;
-                float _7878 = dot(vec2(_7843, _7863), _12634.xy);
-                float _7901 = sqrt(dot(vec2(4.0 * _7860, -_7869), vec3(_7860, _7869, _7878).zy));
-                float _7904 = atan(_7901, -(((-2.0) * _7843) * _7860 + _7869));
-                float _7909 = 2.0 * sqrt(-_7860);
-                float _7911 = cos(_7904 * 0.3333333432674407958984375);
-                float _7920 = _7909 * cos(_7904 * 0.3333333432674407958984375 + 2.094395160675048828125);
-                float _7934 = (((_7909 * _7911 + _7920) > (2.0 * _7843)) ? (_7909 * _7911) : _7920) - _7843;
-                float _7941 = -_7525;
-                float _7946 = 2.0 * _7841;
-                float _7957 = atan(_7525 * _7901, -(_7941 * _7869 + (_7946 * _7878)));
-                float _7962 = 2.0 * sqrt(-_7878);
-                float _7964 = cos(_7957 * 0.3333333432674407958984375);
-                float _7973 = _7962 * cos(_7957 * 0.3333333432674407958984375 + 2.094395160675048828125);
-                float _7989 = (((_7962 * _7964 + _7973) < _7946) ? (_7962 * _7964) : _7973) + _7841;
-                float _8007 = (-_7934) * _7989 + _7525;
-                float _8033 = _7941 / _7989;
-                float _8038 = (_7841 * _8007 + (-(_7843 * (_7934 * _7941)))) / (_7854 * _8007 + (_7841 * _7989));
-                vec3 _8044 = vec3(_8033, _8038, _7934);
-                bool _8049 = _8033 < _8038;
-                bool _8057;
-                if (_8049)
-                {
-                    _8057 = _8033 < _7934;
-                }
-                else
-                {
-                    _8057 = _8049;
-                }
-                vec3 _14806;
-                if (_8057)
-                {
-                    _14806 = _8044.yxz;
-                }
-                else
-                {
-                    bool _8066 = _7934 < _8033;
-                    bool _8074;
-                    if (_8066)
-                    {
-                        _8074 = _7934 < _8038;
-                    }
-                    else
-                    {
-                        _8074 = _8066;
-                    }
-                    vec3 _14807;
-                    if (_8074)
-                    {
-                        _14807 = _8044.xzy;
-                    }
-                    else
-                    {
-                        _14807 = _8044;
-                    }
-                    _14806 = _14807;
-                }
-                float _15911 = -_14806.y;
-                float _7608 = sqrt(_15911 / _14806.z);
-                float _7613 = sqrt(_15911 / _14806.x);
-                float _7627 = (_7608 * _7613) * inversesqrt((_7608 * _7608 + 1.0) * (_7613 * _7613 + 1.0));
-                _14838 = vec3(_7627 * texture(u_ltc_mag, (vec2(normalize(mat3(_14793, _14794, _14795) * vec3((_7517 * _7503) / (_14799 * _7515 + _15911), (_7522 * _7508) / (_14801 * _7515 + _15911), 1.0)).z * 0.5 + 0.5, _7627) * 0.984375) + vec2(0.0078125)).w);
-                break;
-            }
-            else
-            {
-                mat3 _7667 = mat3(vec3(1.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 0.0, 1.0)) * transpose(mat3(_7275, _7279, _12852));
-                vec3 _7674 = _7667 * (u_AreaLightsPoint0[0].xyz - v_posWS);
-                vec3 _7682 = _7667 * (u_AreaLightsPoint1[0].xyz - v_posWS);
-                vec3 _7690 = _7667 * (u_AreaLightsPoint2[0].xyz - v_posWS);
-                vec3 _7698 = _7667 * (u_AreaLightsPoint3[0].xyz - v_posWS);
-                float _8084 = _7674.z;
-                mediump int _15941 = int(_8084 > 0.0);
-                float _8091 = _7682.z;
-                mediump int _14633;
-                if (_8091 > 0.0)
-                {
-                    _14633 = _15941 + 2;
-                }
-                else
-                {
-                    _14633 = _15941;
-                }
-                float _8098 = _7690.z;
-                mediump int _14637;
-                if (_8098 > 0.0)
-                {
-                    _14637 = _14633 + 4;
-                }
-                else
-                {
-                    _14637 = _14633;
-                }
-                float _8105 = _7698.z;
-                mediump int _14638;
-                if (_8105 > 0.0)
-                {
-                    _14638 = _14637 + 8;
-                }
-                else
-                {
-                    _14638 = _14637;
-                }
-                mediump int _14649;
-                vec3 _14665;
-                vec3 _14685;
-                vec3 _14707;
-                vec3 _14725;
-                vec3 _14743;
-                if (_14638 == 0)
-                {
-                    _14743 = _7682;
-                    _14725 = _7690;
-                    _14707 = _7698;
-                    _14685 = _12854;
-                    _14665 = _7674;
-                    _14649 = 0;
-                }
-                else
-                {
-                    mediump int _14650;
-                    vec3 _14666;
-                    vec3 _14690;
-                    vec3 _14708;
-                    vec3 _14726;
-                    vec3 _14744;
-                    if (_14638 == 1)
-                    {
-                        _14744 = (_7674 * (-_8091)) + (_7682 * _8084);
-                        _14726 = (_7674 * (-_8105)) + (_7698 * _8084);
-                        _14708 = _7698;
-                        _14690 = _12854;
-                        _14666 = _7674;
-                        _14650 = 3;
-                    }
-                    else
-                    {
-                        mediump int _14651;
-                        vec3 _14667;
-                        vec3 _14691;
-                        vec3 _14709;
-                        vec3 _14727;
-                        vec3 _14745;
-                        if (_14638 == 2)
-                        {
-                            _14745 = _7682;
-                            _14727 = (_7682 * (-_8098)) + (_7690 * _8091);
-                            _14709 = _7698;
-                            _14691 = _12854;
-                            _14667 = (_7682 * (-_8084)) + (_7674 * _8091);
-                            _14651 = 3;
-                        }
-                        else
-                        {
-                            mediump int _14652;
-                            vec3 _14668;
-                            vec3 _14692;
-                            vec3 _14710;
-                            vec3 _14728;
-                            vec3 _14746;
-                            if (_14638 == 3)
-                            {
-                                _14746 = _7682;
-                                _14728 = (_7682 * (-_8098)) + (_7690 * _8091);
-                                _14710 = (_7674 * (-_8105)) + (_7698 * _8084);
-                                _14692 = _12854;
-                                _14668 = _7674;
-                                _14652 = 4;
-                            }
-                            else
-                            {
-                                mediump int _14653;
-                                vec3 _14669;
-                                vec3 _14693;
-                                vec3 _14711;
-                                vec3 _14729;
-                                vec3 _14747;
-                                if (_14638 == 4)
-                                {
-                                    _14747 = (_7690 * (-_8091)) + (_7682 * _8098);
-                                    _14729 = _7690;
-                                    _14711 = _7698;
-                                    _14693 = _12854;
-                                    _14669 = (_7690 * (-_8105)) + (_7698 * _8098);
-                                    _14653 = 3;
-                                }
-                                else
-                                {
-                                    mediump int _14654;
-                                    vec3 _14670;
-                                    vec3 _14694;
-                                    vec3 _14712;
-                                    vec3 _14730;
-                                    vec3 _14748;
-                                    if (_14638 == 5)
-                                    {
-                                        _14748 = _7682;
-                                        _14730 = _7690;
-                                        _14712 = _7698;
-                                        _14694 = _12854;
-                                        _14670 = _7674;
-                                        _14654 = 0;
-                                    }
-                                    else
-                                    {
-                                        mediump int _14655;
-                                        vec3 _14671;
-                                        vec3 _14695;
-                                        vec3 _14713;
-                                        vec3 _14731;
-                                        vec3 _14749;
-                                        if (_14638 == 6)
-                                        {
-                                            _14749 = _7682;
-                                            _14731 = _7690;
-                                            _14713 = (_7690 * (-_8105)) + (_7698 * _8098);
-                                            _14695 = _12854;
-                                            _14671 = (_7682 * (-_8084)) + (_7674 * _8091);
-                                            _14655 = 4;
-                                        }
-                                        else
-                                        {
-                                            mediump int _14656;
-                                            vec3 _14672;
-                                            vec3 _14696;
-                                            vec3 _14714;
-                                            vec3 _14732;
-                                            vec3 _14750;
-                                            if (_14638 == 7)
-                                            {
-                                                float _8274 = -_8105;
-                                                _14750 = _7682;
-                                                _14732 = _7690;
-                                                _14714 = (_7690 * _8274) + (_7698 * _8098);
-                                                _14696 = (_7674 * _8274) + (_7698 * _8084);
-                                                _14672 = _7674;
-                                                _14656 = 5;
-                                            }
-                                            else
-                                            {
-                                                mediump int _14657;
-                                                vec3 _14673;
-                                                vec3 _14697;
-                                                vec3 _14715;
-                                                vec3 _14733;
-                                                vec3 _14751;
-                                                if (_14638 == 8)
-                                                {
-                                                    _14751 = (_7698 * (-_8098)) + (_7690 * _8105);
-                                                    _14733 = _7698;
-                                                    _14715 = _7698;
-                                                    _14697 = _12854;
-                                                    _14673 = (_7698 * (-_8084)) + (_7674 * _8105);
-                                                    _14657 = 3;
-                                                }
-                                                else
-                                                {
-                                                    mediump int _14658;
-                                                    vec3 _14674;
-                                                    vec3 _14698;
-                                                    vec3 _14716;
-                                                    vec3 _14734;
-                                                    vec3 _14752;
-                                                    if (_14638 == 9)
-                                                    {
-                                                        _14752 = (_7674 * (-_8091)) + (_7682 * _8084);
-                                                        _14734 = (_7698 * (-_8098)) + (_7690 * _8105);
-                                                        _14716 = _7698;
-                                                        _14698 = _12854;
-                                                        _14674 = _7674;
-                                                        _14658 = 4;
-                                                    }
-                                                    else
-                                                    {
-                                                        mediump int _14659;
-                                                        vec3 _14675;
-                                                        vec3 _14699;
-                                                        vec3 _14717;
-                                                        vec3 _14735;
-                                                        vec3 _14753;
-                                                        if (_14638 == 10)
-                                                        {
-                                                            _14753 = _7682;
-                                                            _14735 = _7690;
-                                                            _14717 = _7698;
-                                                            _14699 = _12854;
-                                                            _14675 = _7674;
-                                                            _14659 = 0;
-                                                        }
-                                                        else
-                                                        {
-                                                            mediump int _14660;
-                                                            vec3 _14676;
-                                                            vec3 _14700;
-                                                            vec3 _14718;
-                                                            vec3 _14736;
-                                                            vec3 _14754;
-                                                            if (_14638 == 11)
-                                                            {
-                                                                float _8374 = -_8098;
-                                                                _14754 = _7682;
-                                                                _14736 = (_7682 * _8374) + (_7690 * _8091);
-                                                                _14718 = (_7698 * _8374) + (_7690 * _8105);
-                                                                _14700 = _7698;
-                                                                _14676 = _7674;
-                                                                _14660 = 5;
-                                                            }
-                                                            else
-                                                            {
-                                                                mediump int _14661;
-                                                                vec3 _14677;
-                                                                vec3 _14701;
-                                                                vec3 _14719;
-                                                                vec3 _14737;
-                                                                vec3 _14755;
-                                                                if (_14638 == 12)
-                                                                {
-                                                                    _14755 = (_7690 * (-_8091)) + (_7682 * _8098);
-                                                                    _14737 = _7690;
-                                                                    _14719 = _7698;
-                                                                    _14701 = _12854;
-                                                                    _14677 = (_7698 * (-_8084)) + (_7674 * _8105);
-                                                                    _14661 = 4;
-                                                                }
-                                                                else
-                                                                {
-                                                                    bool _8430 = _14638 == 13;
-                                                                    mediump int _14662;
-                                                                    vec3 _14678;
-                                                                    vec3 _14702;
-                                                                    vec3 _14738;
-                                                                    vec3 _14756;
-                                                                    if (_8430)
-                                                                    {
-                                                                        float _8440 = -_8091;
-                                                                        _14756 = (_7674 * _8440) + (_7682 * _8084);
-                                                                        _14738 = (_7690 * _8440) + (_7682 * _8098);
-                                                                        _14702 = _7698;
-                                                                        _14678 = _7674;
-                                                                        _14662 = 5;
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        mediump int _14663;
-                                                                        vec3 _14679;
-                                                                        vec3 _14703;
-                                                                        if (_14638 == 14)
-                                                                        {
-                                                                            float _8470 = -_8084;
-                                                                            _14703 = (_7698 * _8470) + (_7674 * _8105);
-                                                                            _14679 = (_7682 * _8470) + (_7674 * _8091);
-                                                                            _14663 = 5;
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                            _14703 = _12854;
-                                                                            _14679 = _7674;
-                                                                            _14663 = (_14638 == 15) ? 4 : 0;
-                                                                        }
-                                                                        _14756 = _7682;
-                                                                        _14738 = _7690;
-                                                                        _14702 = _14703;
-                                                                        _14678 = _14679;
-                                                                        _14662 = _14663;
-                                                                    }
-                                                                    bvec3 _15944 = bvec3(_8430);
-                                                                    _14755 = _14756;
-                                                                    _14737 = _14738;
-                                                                    _14719 = vec3(_15944.x ? _7690.x : _7698.x, _15944.y ? _7690.y : _7698.y, _15944.z ? _7690.z : _7698.z);
-                                                                    _14701 = _14702;
-                                                                    _14677 = _14678;
-                                                                    _14661 = _14662;
-                                                                }
-                                                                _14754 = _14755;
-                                                                _14736 = _14737;
-                                                                _14718 = _14719;
-                                                                _14700 = _14701;
-                                                                _14676 = _14677;
-                                                                _14660 = _14661;
-                                                            }
-                                                            _14753 = _14754;
-                                                            _14735 = _14736;
-                                                            _14717 = _14718;
-                                                            _14699 = _14700;
-                                                            _14675 = _14676;
-                                                            _14659 = _14660;
-                                                        }
-                                                        _14752 = _14753;
-                                                        _14734 = _14735;
-                                                        _14716 = _14717;
-                                                        _14698 = _14699;
-                                                        _14674 = _14675;
-                                                        _14658 = _14659;
-                                                    }
-                                                    _14751 = _14752;
-                                                    _14733 = _14734;
-                                                    _14715 = _14716;
-                                                    _14697 = _14698;
-                                                    _14673 = _14674;
-                                                    _14657 = _14658;
-                                                }
-                                                _14750 = _14751;
-                                                _14732 = _14733;
-                                                _14714 = _14715;
-                                                _14696 = _14697;
-                                                _14672 = _14673;
-                                                _14656 = _14657;
-                                            }
-                                            _14749 = _14750;
-                                            _14731 = _14732;
-                                            _14713 = _14714;
-                                            _14695 = _14696;
-                                            _14671 = _14672;
-                                            _14655 = _14656;
-                                        }
-                                        _14748 = _14749;
-                                        _14730 = _14731;
-                                        _14712 = _14713;
-                                        _14694 = _14695;
-                                        _14670 = _14671;
-                                        _14654 = _14655;
-                                    }
-                                    _14747 = _14748;
-                                    _14729 = _14730;
-                                    _14711 = _14712;
-                                    _14693 = _14694;
-                                    _14669 = _14670;
-                                    _14653 = _14654;
-                                }
-                                _14746 = _14747;
-                                _14728 = _14729;
-                                _14710 = _14711;
-                                _14692 = _14693;
-                                _14668 = _14669;
-                                _14652 = _14653;
-                            }
-                            _14745 = _14746;
-                            _14727 = _14728;
-                            _14709 = _14710;
-                            _14691 = _14692;
-                            _14667 = _14668;
-                            _14651 = _14652;
-                        }
-                        _14744 = _14745;
-                        _14726 = _14727;
-                        _14708 = _14709;
-                        _14690 = _14691;
-                        _14666 = _14667;
-                        _14650 = _14651;
-                    }
-                    _14743 = _14744;
-                    _14725 = _14726;
-                    _14707 = _14708;
-                    _14685 = _14690;
-                    _14665 = _14666;
-                    _14649 = _14650;
-                }
-                bvec3 _15946 = bvec3(_14649 == 3);
-                bvec3 _15948 = bvec3(_14649 == 4);
-                if (_14649 == 0)
-                {
-                    _14838 = vec3(0.0);
-                    break;
-                }
-                vec3 _7710 = normalize(_14665);
-                vec3 _7714 = normalize(_14743);
-                vec3 _7718 = normalize(_14725);
-                vec3 _7722 = normalize(vec3(_15946.x ? _14665.x : _14707.x, _15946.y ? _14665.y : _14707.y, _15946.z ? _14665.z : _14707.z));
-                vec3 _7726 = normalize(vec3(_15948.x ? _14665.x : _14685.x, _15948.y ? _14665.y : _14685.y, _15948.z ? _14665.z : _14685.z));
-                float _8547 = dot(_7710, _7714);
-                float _8549 = abs(_8547);
-                float _8563 = ((0.01452060043811798095703125 * _8549 + 0.4965155124664306640625) * _8549 + 0.8543984889984130859375) / ((4.1616725921630859375 + _8549) * _8549 + 3.41759395599365234375);
-                float _14761;
-                if (_8547 > 0.0)
-                {
-                    _14761 = _8563;
-                }
-                else
-                {
-                    _14761 = 0.5 * inversesqrt(max((-_8547) * _8547 + 1.0, 1.0000000116860974230803549289703e-07)) + (-_8563);
-                }
-                float _8604 = dot(_7714, _7718);
-                float _8606 = abs(_8604);
-                float _8620 = ((0.01452060043811798095703125 * _8606 + 0.4965155124664306640625) * _8606 + 0.8543984889984130859375) / ((4.1616725921630859375 + _8606) * _8606 + 3.41759395599365234375);
-                float _14765;
-                if (_8604 > 0.0)
-                {
-                    _14765 = _8620;
-                }
-                else
-                {
-                    _14765 = 0.5 * inversesqrt(max((-_8604) * _8604 + 1.0, 1.0000000116860974230803549289703e-07)) + (-_8620);
-                }
-                float _8661 = dot(_7718, _7722);
-                float _8663 = abs(_8661);
-                float _8677 = ((0.01452060043811798095703125 * _8663 + 0.4965155124664306640625) * _8663 + 0.8543984889984130859375) / ((4.1616725921630859375 + _8663) * _8663 + 3.41759395599365234375);
-                float _14770;
-                if (_8661 > 0.0)
-                {
-                    _14770 = _8677;
-                }
-                else
-                {
-                    _14770 = 0.5 * inversesqrt(max((-_8661) * _8661 + 1.0, 1.0000000116860974230803549289703e-07)) + (-_8677);
-                }
-                float _7748 = ((cross(_7710, _7714) * _14761).z + (cross(_7714, _7718) * _14765).z) + (cross(_7718, _7722) * _14770).z;
-                float _14787;
-                if (_14649 >= 4)
-                {
-                    float _8718 = dot(_7722, _7726);
-                    float _8720 = abs(_8718);
-                    float _8734 = ((0.01452060043811798095703125 * _8720 + 0.4965155124664306640625) * _8720 + 0.8543984889984130859375) / ((4.1616725921630859375 + _8720) * _8720 + 3.41759395599365234375);
-                    float _14776;
-                    if (_8718 > 0.0)
-                    {
-                        _14776 = _8734;
-                    }
-                    else
-                    {
-                        _14776 = 0.5 * inversesqrt(max((-_8718) * _8718 + 1.0, 1.0000000116860974230803549289703e-07)) + (-_8734);
-                    }
-                    _14787 = _7748 + (cross(_7722, _7726) * _14776).z;
-                }
-                else
-                {
-                    _14787 = _7748;
-                }
-                float _14788;
-                if (_14649 == 5)
-                {
-                    float _8775 = dot(_7726, _7710);
-                    float _8777 = abs(_8775);
-                    float _8791 = ((0.01452060043811798095703125 * _8777 + 0.4965155124664306640625) * _8777 + 0.8543984889984130859375) / ((4.1616725921630859375 + _8777) * _8777 + 3.41759395599365234375);
-                    float _14785;
-                    if (_8775 > 0.0)
-                    {
-                        _14785 = _8791;
-                    }
-                    else
-                    {
-                        _14785 = 0.5 * inversesqrt(max((-_8775) * _8775 + 1.0, 1.0000000116860974230803549289703e-07)) + (-_8791);
-                    }
-                    _14788 = _14787 + (cross(_7726, _7710) * _14785).z;
-                }
-                else
-                {
-                    _14788 = _14787;
-                }
-                if (u_AreaLightsTwoSide[0] > 0.5)
-                {
-                    _14838 = vec3(abs(_14788));
-                    break;
-                }
-                _14838 = vec3(max(0.0, _14788));
-                break;
-            }
-        } while(false);
-        vec2 _8835 = clamp((vec2(_3702, sqrt(1.0 - _3727)) * 0.984375) + vec2(0.0078125), vec2(0.0), vec2(1.0));
-        mediump vec4 _8895 = texture(u_ltc_mat, _8835);
-        vec4 _8899 = (_8895 - vec4(0.5)) * 4.0;
-        mat3 _8922 = mat3(vec3(_8899.x, 0.0, _8899.y), vec3(0.0, 1.0, 0.0), vec3(_8899.z, 0.0, _8899.w));
-        mediump vec4 _8928 = texture(u_ltc_mag, _8835);
-        vec3 _15152;
-        do
-        {
-            if (_7282)
-            {
-                mat3 _9030 = transpose(mat3(_7275, _7279, _12852));
-                vec3 _9037 = _9030 * (u_AreaLightsPoint0[0].xyz - v_posWS);
-                vec3 _9045 = _9030 * (u_AreaLightsPoint1[0].xyz - v_posWS);
-                vec3 _9053 = _9030 * (u_AreaLightsPoint2[0].xyz - v_posWS);
-                vec3 _9075 = _8922 * ((_9037 + _9053) * 0.5);
-                vec3 _9078 = _8922 * ((_9045 - _9053) * 0.5);
-                vec3 _9081 = _8922 * ((_9045 - _9037) * 0.5);
-                if (u_AreaLightsTwoSide[0] < 0.5)
-                {
-                    if (dot(cross(_9078, _9081), _9075) < 0.0)
-                    {
-                        _15152 = vec3(0.0);
-                        break;
-                    }
-                }
-                float _9097 = dot(_9078, _9078);
-                float _9100 = dot(_9081, _9081);
-                float _9103 = dot(_9078, _9081);
-                float _9108 = _9097 * _9100;
-                vec3 _15107;
-                vec3 _15108;
-                float _15113;
-                float _15115;
-                if ((abs(_9103) / sqrt(_9108)) > 9.9999997473787516355514526367188e-05)
-                {
-                    float _9115 = _9097 + _9100;
-                    float _9125 = sqrt((-_9103) * _9103 + _9108);
-                    float _9130 = sqrt((-2.0) * _9125 + _9115);
-                    float _9136 = sqrt(2.0 * _9125 + _9115);
-                    float _9140 = 0.5 * _9130 + (0.5 * _9136);
-                    float _9144 = 0.5 * _9130 + (_9136 * (-0.5));
-                    vec3 _15105;
-                    vec3 _15106;
-                    if (_9097 > _9100)
-                    {
-                        vec3 _9152 = _9078 * _9103;
-                        float _15927 = -_9097;
-                        _15106 = _9152 + (_9081 * (_9144 * _9144 + _15927));
-                        _15105 = _9152 + (_9081 * (_9140 * _9140 + _15927));
-                    }
-                    else
-                    {
-                        vec3 _9171 = _9081 * _9103;
-                        float _15925 = -_9100;
-                        _15106 = _9171 + (_9078 * (_9144 * _9144 + _15925));
-                        _15105 = _9171 + (_9078 * (_9140 * _9140 + _15925));
-                    }
-                    _15115 = 1.0 / (_9144 * _9144);
-                    _15113 = 1.0 / (_9140 * _9140);
-                    _15108 = normalize(_15106);
-                    _15107 = normalize(_15105);
-                }
-                else
-                {
-                    float _9200 = 1.0 / _9097;
-                    float _9204 = 1.0 / _9100;
-                    _15115 = _9204;
-                    _15113 = _9200;
-                    _15108 = _9081 * sqrt(_9204);
-                    _15107 = _9078 * sqrt(_9200);
-                }
-                vec3 _9216 = cross(_15107, _15108);
-                vec3 _15109;
-                if (dot(_9075, _9216) < 0.0)
-                {
-                    _15109 = _9216 * (-1.0);
-                }
-                else
-                {
-                    _15109 = _9216;
-                }
-                float _9227 = dot(_15109, _9075);
-                float _9232 = dot(_15107, _9075) / _9227;
-                float _9237 = dot(_15108, _9075) / _9227;
-                float _9244 = _9227 * _9227;
-                float _9246 = _15113 * _9244;
-                float _9251 = _15115 * _9244;
-                float _9254 = _9246 * _9251;
-                float _9261 = _9232 * _9232 + 1.0;
-                float _15929 = -_9246;
-                vec4 _12744 = _15940;
-                _12744.x = _9254;
-                vec4 _12746 = _12744;
-                _12746.y = (-_15115) * _9244 + (_9254 * (_9237 * _9237 + _9261) + _15929);
-                vec4 _12748 = _12746;
-                _12748.z = (-_9251) * (_9237 * _9237 + 1.0) + (_15929 * _9261 + 1.0);
-                vec2 _9568 = _12748.yz * vec2(0.3333333432674407958984375);
-                float _9570 = _9568.x;
-                vec4 _12750 = _12748;
-                _12750.y = _9570;
-                float _9572 = _9568.y;
-                float _9583 = -_9572;
-                float _9589 = _9583 * _9572 + _9570;
-                float _9592 = -_9570;
-                float _9598 = _9592 * _9572 + _9254;
-                float _9607 = dot(vec2(_9572, _9592), _12750.xy);
-                float _9630 = sqrt(dot(vec2(4.0 * _9589, -_9598), vec3(_9589, _9598, _9607).zy));
-                float _9633 = atan(_9630, -(((-2.0) * _9572) * _9589 + _9598));
-                float _9638 = 2.0 * sqrt(-_9589);
-                float _9640 = cos(_9633 * 0.3333333432674407958984375);
-                float _9649 = _9638 * cos(_9633 * 0.3333333432674407958984375 + 2.094395160675048828125);
-                float _9663 = (((_9638 * _9640 + _9649) > (2.0 * _9572)) ? (_9638 * _9640) : _9649) - _9572;
-                float _9670 = -_9254;
-                float _9675 = 2.0 * _9570;
-                float _9686 = atan(_9254 * _9630, -(_9670 * _9598 + (_9675 * _9607)));
-                float _9691 = 2.0 * sqrt(-_9607);
-                float _9693 = cos(_9686 * 0.3333333432674407958984375);
-                float _9702 = _9691 * cos(_9686 * 0.3333333432674407958984375 + 2.094395160675048828125);
-                float _9718 = (((_9691 * _9693 + _9702) < _9675) ? (_9691 * _9693) : _9702) + _9570;
-                float _9736 = (-_9663) * _9718 + _9254;
-                float _9762 = _9670 / _9718;
-                float _9767 = (_9570 * _9736 + (-(_9572 * (_9663 * _9670)))) / (_9583 * _9736 + (_9570 * _9718));
-                vec3 _9773 = vec3(_9762, _9767, _9663);
-                bool _9778 = _9762 < _9767;
-                bool _9786;
-                if (_9778)
-                {
-                    _9786 = _9762 < _9663;
-                }
-                else
-                {
-                    _9786 = _9778;
-                }
-                vec3 _15120;
-                if (_9786)
-                {
-                    _15120 = _9773.yxz;
-                }
-                else
-                {
-                    bool _9795 = _9663 < _9762;
-                    bool _9803;
-                    if (_9795)
-                    {
-                        _9803 = _9663 < _9767;
-                    }
-                    else
-                    {
-                        _9803 = _9795;
-                    }
-                    vec3 _15121;
-                    if (_9803)
-                    {
-                        _15121 = _9773.xzy;
-                    }
-                    else
-                    {
-                        _15121 = _9773;
-                    }
-                    _15120 = _15121;
-                }
-                float _15935 = -_15120.y;
-                float _9337 = sqrt(_15935 / _15120.z);
-                float _9342 = sqrt(_15935 / _15120.x);
-                float _9356 = (_9337 * _9342) * inversesqrt((_9337 * _9337 + 1.0) * (_9342 * _9342 + 1.0));
-                _15152 = vec3(_9356 * texture(u_ltc_mag, (vec2(normalize(mat3(_15107, _15108, _15109) * vec3((_9246 * _9232) / (_15113 * _9244 + _15935), (_9251 * _9237) / (_15115 * _9244 + _15935), 1.0)).z * 0.5 + 0.5, _9356) * 0.984375) + vec2(0.0078125)).w);
-                break;
-            }
-            else
-            {
-                mat3 _9396 = _8922 * transpose(mat3(_7275, _7279, _12852));
-                vec3 _9403 = _9396 * (u_AreaLightsPoint0[0].xyz - v_posWS);
-                vec3 _9411 = _9396 * (u_AreaLightsPoint1[0].xyz - v_posWS);
-                vec3 _9419 = _9396 * (u_AreaLightsPoint2[0].xyz - v_posWS);
-                vec3 _9427 = _9396 * (u_AreaLightsPoint3[0].xyz - v_posWS);
-                float _9813 = _9403.z;
-                mediump int _15952 = int(_9813 > 0.0);
-                float _9820 = _9411.z;
-                mediump int _14947;
-                if (_9820 > 0.0)
-                {
-                    _14947 = _15952 + 2;
-                }
-                else
-                {
-                    _14947 = _15952;
-                }
-                float _9827 = _9419.z;
-                mediump int _14951;
-                if (_9827 > 0.0)
-                {
-                    _14951 = _14947 + 4;
-                }
-                else
-                {
-                    _14951 = _14947;
-                }
-                float _9834 = _9427.z;
-                mediump int _14952;
-                if (_9834 > 0.0)
-                {
-                    _14952 = _14951 + 8;
-                }
-                else
-                {
-                    _14952 = _14951;
-                }
-                mediump int _14963;
-                vec3 _14979;
-                vec3 _14999;
-                vec3 _15021;
-                vec3 _15039;
-                vec3 _15057;
-                if (_14952 == 0)
-                {
-                    _15057 = _9411;
-                    _15039 = _9419;
-                    _15021 = _9427;
-                    _14999 = _12854;
-                    _14979 = _9403;
-                    _14963 = 0;
-                }
-                else
-                {
-                    mediump int _14964;
-                    vec3 _14980;
-                    vec3 _15004;
-                    vec3 _15022;
-                    vec3 _15040;
-                    vec3 _15058;
-                    if (_14952 == 1)
-                    {
-                        _15058 = (_9403 * (-_9820)) + (_9411 * _9813);
-                        _15040 = (_9403 * (-_9834)) + (_9427 * _9813);
-                        _15022 = _9427;
-                        _15004 = _12854;
-                        _14980 = _9403;
-                        _14964 = 3;
-                    }
-                    else
-                    {
-                        mediump int _14965;
-                        vec3 _14981;
-                        vec3 _15005;
-                        vec3 _15023;
-                        vec3 _15041;
-                        vec3 _15059;
-                        if (_14952 == 2)
-                        {
-                            _15059 = _9411;
-                            _15041 = (_9411 * (-_9827)) + (_9419 * _9820);
-                            _15023 = _9427;
-                            _15005 = _12854;
-                            _14981 = (_9411 * (-_9813)) + (_9403 * _9820);
-                            _14965 = 3;
-                        }
-                        else
-                        {
-                            mediump int _14966;
-                            vec3 _14982;
-                            vec3 _15006;
-                            vec3 _15024;
-                            vec3 _15042;
-                            vec3 _15060;
-                            if (_14952 == 3)
-                            {
-                                _15060 = _9411;
-                                _15042 = (_9411 * (-_9827)) + (_9419 * _9820);
-                                _15024 = (_9403 * (-_9834)) + (_9427 * _9813);
-                                _15006 = _12854;
-                                _14982 = _9403;
-                                _14966 = 4;
-                            }
-                            else
-                            {
-                                mediump int _14967;
-                                vec3 _14983;
-                                vec3 _15007;
-                                vec3 _15025;
-                                vec3 _15043;
-                                vec3 _15061;
-                                if (_14952 == 4)
-                                {
-                                    _15061 = (_9419 * (-_9820)) + (_9411 * _9827);
-                                    _15043 = _9419;
-                                    _15025 = _9427;
-                                    _15007 = _12854;
-                                    _14983 = (_9419 * (-_9834)) + (_9427 * _9827);
-                                    _14967 = 3;
-                                }
-                                else
-                                {
-                                    mediump int _14968;
-                                    vec3 _14984;
-                                    vec3 _15008;
-                                    vec3 _15026;
-                                    vec3 _15044;
-                                    vec3 _15062;
-                                    if (_14952 == 5)
-                                    {
-                                        _15062 = _9411;
-                                        _15044 = _9419;
-                                        _15026 = _9427;
-                                        _15008 = _12854;
-                                        _14984 = _9403;
-                                        _14968 = 0;
-                                    }
-                                    else
-                                    {
-                                        mediump int _14969;
-                                        vec3 _14985;
-                                        vec3 _15009;
-                                        vec3 _15027;
-                                        vec3 _15045;
-                                        vec3 _15063;
-                                        if (_14952 == 6)
-                                        {
-                                            _15063 = _9411;
-                                            _15045 = _9419;
-                                            _15027 = (_9419 * (-_9834)) + (_9427 * _9827);
-                                            _15009 = _12854;
-                                            _14985 = (_9411 * (-_9813)) + (_9403 * _9820);
-                                            _14969 = 4;
-                                        }
-                                        else
-                                        {
-                                            mediump int _14970;
-                                            vec3 _14986;
-                                            vec3 _15010;
-                                            vec3 _15028;
-                                            vec3 _15046;
-                                            vec3 _15064;
-                                            if (_14952 == 7)
-                                            {
-                                                float _10003 = -_9834;
-                                                _15064 = _9411;
-                                                _15046 = _9419;
-                                                _15028 = (_9419 * _10003) + (_9427 * _9827);
-                                                _15010 = (_9403 * _10003) + (_9427 * _9813);
-                                                _14986 = _9403;
-                                                _14970 = 5;
-                                            }
-                                            else
-                                            {
-                                                mediump int _14971;
-                                                vec3 _14987;
-                                                vec3 _15011;
-                                                vec3 _15029;
-                                                vec3 _15047;
-                                                vec3 _15065;
-                                                if (_14952 == 8)
-                                                {
-                                                    _15065 = (_9427 * (-_9827)) + (_9419 * _9834);
-                                                    _15047 = _9427;
-                                                    _15029 = _9427;
-                                                    _15011 = _12854;
-                                                    _14987 = (_9427 * (-_9813)) + (_9403 * _9834);
-                                                    _14971 = 3;
-                                                }
-                                                else
-                                                {
-                                                    mediump int _14972;
-                                                    vec3 _14988;
-                                                    vec3 _15012;
-                                                    vec3 _15030;
-                                                    vec3 _15048;
-                                                    vec3 _15066;
-                                                    if (_14952 == 9)
-                                                    {
-                                                        _15066 = (_9403 * (-_9820)) + (_9411 * _9813);
-                                                        _15048 = (_9427 * (-_9827)) + (_9419 * _9834);
-                                                        _15030 = _9427;
-                                                        _15012 = _12854;
-                                                        _14988 = _9403;
-                                                        _14972 = 4;
-                                                    }
-                                                    else
-                                                    {
-                                                        mediump int _14973;
-                                                        vec3 _14989;
-                                                        vec3 _15013;
-                                                        vec3 _15031;
-                                                        vec3 _15049;
-                                                        vec3 _15067;
-                                                        if (_14952 == 10)
-                                                        {
-                                                            _15067 = _9411;
-                                                            _15049 = _9419;
-                                                            _15031 = _9427;
-                                                            _15013 = _12854;
-                                                            _14989 = _9403;
-                                                            _14973 = 0;
-                                                        }
-                                                        else
-                                                        {
-                                                            mediump int _14974;
-                                                            vec3 _14990;
-                                                            vec3 _15014;
-                                                            vec3 _15032;
-                                                            vec3 _15050;
-                                                            vec3 _15068;
-                                                            if (_14952 == 11)
-                                                            {
-                                                                float _10103 = -_9827;
-                                                                _15068 = _9411;
-                                                                _15050 = (_9411 * _10103) + (_9419 * _9820);
-                                                                _15032 = (_9427 * _10103) + (_9419 * _9834);
-                                                                _15014 = _9427;
-                                                                _14990 = _9403;
-                                                                _14974 = 5;
-                                                            }
-                                                            else
-                                                            {
-                                                                mediump int _14975;
-                                                                vec3 _14991;
-                                                                vec3 _15015;
-                                                                vec3 _15033;
-                                                                vec3 _15051;
-                                                                vec3 _15069;
-                                                                if (_14952 == 12)
-                                                                {
-                                                                    _15069 = (_9419 * (-_9820)) + (_9411 * _9827);
-                                                                    _15051 = _9419;
-                                                                    _15033 = _9427;
-                                                                    _15015 = _12854;
-                                                                    _14991 = (_9427 * (-_9813)) + (_9403 * _9834);
-                                                                    _14975 = 4;
-                                                                }
-                                                                else
-                                                                {
-                                                                    bool _10159 = _14952 == 13;
-                                                                    mediump int _14976;
-                                                                    vec3 _14992;
-                                                                    vec3 _15016;
-                                                                    vec3 _15052;
-                                                                    vec3 _15070;
-                                                                    if (_10159)
-                                                                    {
-                                                                        float _10169 = -_9820;
-                                                                        _15070 = (_9403 * _10169) + (_9411 * _9813);
-                                                                        _15052 = (_9419 * _10169) + (_9411 * _9827);
-                                                                        _15016 = _9427;
-                                                                        _14992 = _9403;
-                                                                        _14976 = 5;
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        mediump int _14977;
-                                                                        vec3 _14993;
-                                                                        vec3 _15017;
-                                                                        if (_14952 == 14)
-                                                                        {
-                                                                            float _10199 = -_9813;
-                                                                            _15017 = (_9427 * _10199) + (_9403 * _9834);
-                                                                            _14993 = (_9411 * _10199) + (_9403 * _9820);
-                                                                            _14977 = 5;
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                            _15017 = _12854;
-                                                                            _14993 = _9403;
-                                                                            _14977 = (_14952 == 15) ? 4 : 0;
-                                                                        }
-                                                                        _15070 = _9411;
-                                                                        _15052 = _9419;
-                                                                        _15016 = _15017;
-                                                                        _14992 = _14993;
-                                                                        _14976 = _14977;
-                                                                    }
-                                                                    bvec3 _15954 = bvec3(_10159);
-                                                                    _15069 = _15070;
-                                                                    _15051 = _15052;
-                                                                    _15033 = vec3(_15954.x ? _9419.x : _9427.x, _15954.y ? _9419.y : _9427.y, _15954.z ? _9419.z : _9427.z);
-                                                                    _15015 = _15016;
-                                                                    _14991 = _14992;
-                                                                    _14975 = _14976;
-                                                                }
-                                                                _15068 = _15069;
-                                                                _15050 = _15051;
-                                                                _15032 = _15033;
-                                                                _15014 = _15015;
-                                                                _14990 = _14991;
-                                                                _14974 = _14975;
-                                                            }
-                                                            _15067 = _15068;
-                                                            _15049 = _15050;
-                                                            _15031 = _15032;
-                                                            _15013 = _15014;
-                                                            _14989 = _14990;
-                                                            _14973 = _14974;
-                                                        }
-                                                        _15066 = _15067;
-                                                        _15048 = _15049;
-                                                        _15030 = _15031;
-                                                        _15012 = _15013;
-                                                        _14988 = _14989;
-                                                        _14972 = _14973;
-                                                    }
-                                                    _15065 = _15066;
-                                                    _15047 = _15048;
-                                                    _15029 = _15030;
-                                                    _15011 = _15012;
-                                                    _14987 = _14988;
-                                                    _14971 = _14972;
-                                                }
-                                                _15064 = _15065;
-                                                _15046 = _15047;
-                                                _15028 = _15029;
-                                                _15010 = _15011;
-                                                _14986 = _14987;
-                                                _14970 = _14971;
-                                            }
-                                            _15063 = _15064;
-                                            _15045 = _15046;
-                                            _15027 = _15028;
-                                            _15009 = _15010;
-                                            _14985 = _14986;
-                                            _14969 = _14970;
-                                        }
-                                        _15062 = _15063;
-                                        _15044 = _15045;
-                                        _15026 = _15027;
-                                        _15008 = _15009;
-                                        _14984 = _14985;
-                                        _14968 = _14969;
-                                    }
-                                    _15061 = _15062;
-                                    _15043 = _15044;
-                                    _15025 = _15026;
-                                    _15007 = _15008;
-                                    _14983 = _14984;
-                                    _14967 = _14968;
-                                }
-                                _15060 = _15061;
-                                _15042 = _15043;
-                                _15024 = _15025;
-                                _15006 = _15007;
-                                _14982 = _14983;
-                                _14966 = _14967;
-                            }
-                            _15059 = _15060;
-                            _15041 = _15042;
-                            _15023 = _15024;
-                            _15005 = _15006;
-                            _14981 = _14982;
-                            _14965 = _14966;
-                        }
-                        _15058 = _15059;
-                        _15040 = _15041;
-                        _15022 = _15023;
-                        _15004 = _15005;
-                        _14980 = _14981;
-                        _14964 = _14965;
-                    }
-                    _15057 = _15058;
-                    _15039 = _15040;
-                    _15021 = _15022;
-                    _14999 = _15004;
-                    _14979 = _14980;
-                    _14963 = _14964;
-                }
-                bvec3 _15956 = bvec3(_14963 == 3);
-                bvec3 _15958 = bvec3(_14963 == 4);
-                if (_14963 == 0)
-                {
-                    _15152 = vec3(0.0);
-                    break;
-                }
-                vec3 _9439 = normalize(_14979);
-                vec3 _9443 = normalize(_15057);
-                vec3 _9447 = normalize(_15039);
-                vec3 _9451 = normalize(vec3(_15956.x ? _14979.x : _15021.x, _15956.y ? _14979.y : _15021.y, _15956.z ? _14979.z : _15021.z));
-                vec3 _9455 = normalize(vec3(_15958.x ? _14979.x : _14999.x, _15958.y ? _14979.y : _14999.y, _15958.z ? _14979.z : _14999.z));
-                float _10276 = dot(_9439, _9443);
-                float _10278 = abs(_10276);
-                float _10292 = ((0.01452060043811798095703125 * _10278 + 0.4965155124664306640625) * _10278 + 0.8543984889984130859375) / ((4.1616725921630859375 + _10278) * _10278 + 3.41759395599365234375);
-                float _15075;
-                if (_10276 > 0.0)
-                {
-                    _15075 = _10292;
-                }
-                else
-                {
-                    _15075 = 0.5 * inversesqrt(max((-_10276) * _10276 + 1.0, 1.0000000116860974230803549289703e-07)) + (-_10292);
-                }
-                float _10333 = dot(_9443, _9447);
-                float _10335 = abs(_10333);
-                float _10349 = ((0.01452060043811798095703125 * _10335 + 0.4965155124664306640625) * _10335 + 0.8543984889984130859375) / ((4.1616725921630859375 + _10335) * _10335 + 3.41759395599365234375);
-                float _15079;
-                if (_10333 > 0.0)
-                {
-                    _15079 = _10349;
-                }
-                else
-                {
-                    _15079 = 0.5 * inversesqrt(max((-_10333) * _10333 + 1.0, 1.0000000116860974230803549289703e-07)) + (-_10349);
-                }
-                float _10390 = dot(_9447, _9451);
-                float _10392 = abs(_10390);
-                float _10406 = ((0.01452060043811798095703125 * _10392 + 0.4965155124664306640625) * _10392 + 0.8543984889984130859375) / ((4.1616725921630859375 + _10392) * _10392 + 3.41759395599365234375);
-                float _15084;
-                if (_10390 > 0.0)
-                {
-                    _15084 = _10406;
-                }
-                else
-                {
-                    _15084 = 0.5 * inversesqrt(max((-_10390) * _10390 + 1.0, 1.0000000116860974230803549289703e-07)) + (-_10406);
-                }
-                float _9477 = ((cross(_9439, _9443) * _15075).z + (cross(_9443, _9447) * _15079).z) + (cross(_9447, _9451) * _15084).z;
-                float _15101;
-                if (_14963 >= 4)
-                {
-                    float _10447 = dot(_9451, _9455);
-                    float _10449 = abs(_10447);
-                    float _10463 = ((0.01452060043811798095703125 * _10449 + 0.4965155124664306640625) * _10449 + 0.8543984889984130859375) / ((4.1616725921630859375 + _10449) * _10449 + 3.41759395599365234375);
-                    float _15090;
-                    if (_10447 > 0.0)
-                    {
-                        _15090 = _10463;
-                    }
-                    else
-                    {
-                        _15090 = 0.5 * inversesqrt(max((-_10447) * _10447 + 1.0, 1.0000000116860974230803549289703e-07)) + (-_10463);
-                    }
-                    _15101 = _9477 + (cross(_9451, _9455) * _15090).z;
-                }
-                else
-                {
-                    _15101 = _9477;
-                }
-                float _15102;
-                if (_14963 == 5)
-                {
-                    float _10504 = dot(_9455, _9439);
-                    float _10506 = abs(_10504);
-                    float _10520 = ((0.01452060043811798095703125 * _10506 + 0.4965155124664306640625) * _10506 + 0.8543984889984130859375) / ((4.1616725921630859375 + _10506) * _10506 + 3.41759395599365234375);
-                    float _15099;
-                    if (_10504 > 0.0)
-                    {
-                        _15099 = _10520;
-                    }
-                    else
-                    {
-                        _15099 = 0.5 * inversesqrt(max((-_10504) * _10504 + 1.0, 1.0000000116860974230803549289703e-07)) + (-_10520);
-                    }
-                    _15102 = _15101 + (cross(_9455, _9439) * _15099).z;
-                }
-                else
-                {
-                    _15102 = _15101;
-                }
-                if (u_AreaLightsTwoSide[0] > 0.5)
-                {
-                    _15152 = vec3(abs(_15102));
-                    break;
-                }
-                _15152 = vec3(max(0.0, _15102));
-                break;
-            }
-        } while(false);
-        _15286 = _14484 + (((u_AreaLightsColor[0].xyz * _7115) * (((_3745 * _8928.x) + ((vec3(1.0) - _3745) * _8928.y)) * _15152)) * 1.0);
-        _15245 = _14483 + ((((_3716 * u_AreaLightsColor[0].xyz) * _7115) * _14838) * 1.0);
-    }
-    else
-    {
-        _15286 = _14484;
-        _15245 = _14483;
-    }
-    float _10564 = (u_AreaLightsIntensity[1] * u_AreaLightsEnabled[1]) * 3.1415920257568359375;
-    vec3 _15812;
-    vec3 _15813;
-    if (u_AreaLightsEnabled[1] > 0.5)
-    {
-        float _10717 = 1.0 - max(0.0, _12935);
-        float _10731 = _10717 * _10717;
-        float _10749 = (_12935 * _3776 + (-_12935)) * _12935 + 1.0;
-        _15813 = _15286 + (((((_3745 + ((vec3(1.0) - _3745) * ((_10731 * _10731) * _10717))) * (((_3776 * 0.31830990314483642578125) / (_10749 * _10749 + 1.0000000116860974230803549289703e-07)) * 0.25)) * _12935) * u_AreaLightsColor[1].xyz) * _10564);
-        _15812 = _15245 + (((_3716 * u_AreaLightsColor[1].xyz) * _10564) * (_12935 * 0.31830990314483642578125));
-    }
-    else
-    {
-        _15813 = _15286;
-        _15812 = _15245;
-    }
-    o_fragColor = vec4(pow(max(_15812 + _15813, vec3(9.9999997473787516355514526367188e-06)), vec3(0.4545454680919647216796875)), _AlbedoColor.w);
+    vec2 ndc_coord = v_gl_pos.xy / vec2(v_gl_pos.w);
+    vec2 screen_coord = (ndc_coord * 0.5) + vec2(0.5);
+    vec4 final_color = MainEntry();
+    vec4 param = final_color;
+    vec2 param_1 = screen_coord;
+    o_fragColor = ApplyBlendMode(param, param_1);
 }
 

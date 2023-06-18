@@ -65,11 +65,15 @@ struct main0_in
 vertex main0_out main0(main0_in in [[stage_in]], constant buffer_t& buffer)
 {
     main0_out out = {};
-    float4x4 _41 = buffer.u_Palatte[int(in.attBoneIds.x)] * in.attWeights.x;
+    float4 homogeneous_pos = float4(in.attPosition, 1.0);
+    float4x4 boneTransform = buffer.u_Palatte[int(in.attBoneIds.x)] * in.attWeights.x;
     float4x4 _50 = buffer.u_Palatte[int(in.attBoneIds.y)] * in.attWeights.y;
+    boneTransform = float4x4(boneTransform[0] + _50[0], boneTransform[1] + _50[1], boneTransform[2] + _50[2], boneTransform[3] + _50[3]);
     float4x4 _73 = buffer.u_Palatte[int(in.attBoneIds.z)] * in.attWeights.z;
+    boneTransform = float4x4(boneTransform[0] + _73[0], boneTransform[1] + _73[1], boneTransform[2] + _73[2], boneTransform[3] + _73[3]);
     float4x4 _96 = buffer.u_Palatte[int(in.attBoneIds.w)] * in.attWeights.w;
-    out.gl_Position = (buffer.u_MVP * float4x4(((_41[0] + _50[0]) + _73[0]) + _96[0], ((_41[1] + _50[1]) + _73[1]) + _96[1], ((_41[2] + _50[2]) + _73[2]) + _96[2], ((_41[3] + _50[3]) + _73[3]) + _96[3])) * float4(in.attPosition, 1.0);
+    boneTransform = float4x4(boneTransform[0] + _96[0], boneTransform[1] + _96[1], boneTransform[2] + _96[2], boneTransform[3] + _96[3]);
+    out.gl_Position = (buffer.u_MVP * boneTransform) * float4(in.attPosition, 1.0);
     out.gl_Position.z = (out.gl_Position.z + out.gl_Position.w) * 0.5;       // Adjust clip-space for Metal
     return out;
 }

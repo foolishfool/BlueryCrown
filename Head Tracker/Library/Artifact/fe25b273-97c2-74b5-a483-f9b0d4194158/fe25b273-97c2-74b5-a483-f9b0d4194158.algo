@@ -1,0 +1,6 @@
+%YAML 1.1
+--- !AlgorithmAsset &1
+name: ""
+guid: {a: 5348642182848169833, b: 2867795739943091893}
+algoKey: eyebroweraser
+scriptPath: eyebroweraser/eyebroweraser.js

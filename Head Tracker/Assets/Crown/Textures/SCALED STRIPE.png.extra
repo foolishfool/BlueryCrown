@@ -1,0 +1,27 @@
+[
+  {
+    "guid": {
+      "a": "2c06f198-d007-6669-5601-f1cedae3c1af",
+      "b": ""
+    },
+    "extraType": "ResItemPNGImage",
+    "name": "SCALED STRIPE",
+    "expandInPanel": true,
+    "objGuid": "",
+    "rttiType": "Texture2D",
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "compressionType": 0,
+    "quality": 0,
+    "maxResolution": 512,
+    "enableMipmap": false,
+    "filterMin": 1,
+    "filterMag": 1,
+    "filterMipmap": 0,
+    "wrapModeS": 0,
+    "wrapModeT": 0,
+    "wrapModeR": 0,
+    "premultiplyAlpha": false
+  }
+]

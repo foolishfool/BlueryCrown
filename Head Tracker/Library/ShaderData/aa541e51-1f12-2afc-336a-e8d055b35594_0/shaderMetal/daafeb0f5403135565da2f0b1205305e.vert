@@ -54,14 +54,14 @@ struct buffer_t
 
 struct main0_out
 {
-    float4 v_gl_pos [[user(locn0)]];
-    float3 v_posWS [[user(locn1)]];
-    float3 v_nDirWS [[user(locn2)]];
-    float2 v_uv0 [[user(locn3)]];
-    float2 v_uv0_src [[user(locn4)]];
-    float2 v_uv1 [[user(locn5)]];
-    float3 v_tDirWS [[user(locn6)]];
-    float3 v_bDirWS [[user(locn7)]];
+    float4 v_gl_pos;
+    float3 v_posWS;
+    float3 v_nDirWS;
+    float2 v_uv0;
+    float2 v_uv0_src;
+    float2 v_uv1;
+    float3 v_tDirWS;
+    float3 v_bDirWS;
     float4 gl_Position [[position]];
 };
 
@@ -76,6 +76,19 @@ struct main0_in
     float4 attWeights [[attribute(7)]];
 };
 
+static inline __attribute__((always_inline))
+float4x4 BoneTransform(constant spvUnsafeArray<float4x4, 50>& u_Palatte, thread float4& attBoneIds, thread float4& attWeights)
+{
+    float4x4 _33 = u_Palatte[int(attBoneIds.x)] * attWeights.x;
+    float4x4 _42 = u_Palatte[int(attBoneIds.y)] * attWeights.y;
+    float4x4 _55 = float4x4(_33[0] + _42[0], _33[1] + _42[1], _33[2] + _42[2], _33[3] + _42[3]);
+    float4x4 _64 = u_Palatte[int(attBoneIds.z)] * attWeights.z;
+    float4x4 _77 = float4x4(_55[0] + _64[0], _55[1] + _64[1], _55[2] + _64[2], _55[3] + _64[3]);
+    float4x4 _86 = u_Palatte[int(attBoneIds.w)] * attWeights.w;
+    float4x4 boneTransform = float4x4(_77[0] + _86[0], _77[1] + _86[1], _77[2] + _86[2], _77[3] + _86[3]);
+    return boneTransform;
+}
+
 vertex main0_out main0(main0_in in [[stage_in]], constant buffer_t& buffer)
 {
     main0_out out = {};
@@ -83,20 +96,17 @@ vertex main0_out main0(main0_in in [[stage_in]], constant buffer_t& buffer)
     out.v_uv0 = _115;
     out.v_uv0_src = _115;
     out.v_uv1 = float2(in.attTexcoord1.x, 1.0 - in.attTexcoord1.y);
-    float4x4 _242 = buffer.u_Palatte[int(in.attBoneIds.x)] * in.attWeights.x;
-    float4x4 _250 = buffer.u_Palatte[int(in.attBoneIds.y)] * in.attWeights.y;
-    float4x4 _271 = buffer.u_Palatte[int(in.attBoneIds.z)] * in.attWeights.z;
-    float4x4 _292 = buffer.u_Palatte[int(in.attBoneIds.w)] * in.attWeights.w;
-    float4x4 _305 = float4x4(((_242[0] + _250[0]) + _271[0]) + _292[0], ((_242[1] + _250[1]) + _271[1]) + _292[1], ((_242[2] + _250[2]) + _271[2]) + _292[2], ((_242[3] + _250[3]) + _271[3]) + _292[3]);
-    float4 _149 = _305 * float4(in.attPosition, 1.0);
-    float4 _158 = _305 * float4(in.attNormal, 0.0);
-    out.v_posWS = (buffer.u_Model * _149).xyz;
-    out.v_nDirWS = (buffer.u_TransposeInvModel * float4(_158.xyz, 0.0)).xyz;
-    float4 _185 = _305 * float4(in.attTangent.xyz, 0.0);
-    float4 _194 = _305 * float4(fast::normalize(cross(in.attNormal, in.attTangent.xyz)) * in.attTangent.w, 0.0);
-    out.v_tDirWS = (buffer.u_Model * float4(_185.xyz, 0.0)).xyz;
-    out.v_bDirWS = (buffer.u_Model * float4(_194.xyz, 0.0)).xyz;
-    out.gl_Position = buffer.u_MVP * _149;
+    float3 attBinormal = normalize(cross(in.attNormal, in.attTangent.xyz)) * in.attTangent.w;
+    float4x4 boneTransform = BoneTransform(buffer.u_Palatte, in.attBoneIds, in.attWeights);
+    float4 bm_postiton = boneTransform * float4(in.attPosition, 1.0);
+    float3 bn_normal = (boneTransform * float4(in.attNormal, 0.0)).xyz;
+    out.v_posWS = (buffer.u_Model * bm_postiton).xyz;
+    out.v_nDirWS = (buffer.u_TransposeInvModel * float4(bn_normal, 0.0)).xyz;
+    float3 bm_tangent = (boneTransform * float4(in.attTangent.xyz, 0.0)).xyz;
+    float3 bm_binormal = (boneTransform * float4(attBinormal, 0.0)).xyz;
+    out.v_tDirWS = (buffer.u_Model * float4(bm_tangent, 0.0)).xyz;
+    out.v_bDirWS = (buffer.u_Model * float4(bm_binormal, 0.0)).xyz;
+    out.gl_Position = buffer.u_MVP * bm_postiton;
     out.v_gl_pos = out.gl_Position;
     out.gl_Position.z = (out.gl_Position.z + out.gl_Position.w) * 0.5;       // Adjust clip-space for Metal
     return out;

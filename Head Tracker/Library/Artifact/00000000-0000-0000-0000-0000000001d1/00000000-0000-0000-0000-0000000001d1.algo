@@ -1,0 +1,6 @@
+%YAML 1.1
+--- !AlgorithmAsset &1
+name: ""
+guid: {a: 5369233931277986960, b: 13428256175740604859}
+algoKey: algonone
+scriptPath: algonone/algonone.js

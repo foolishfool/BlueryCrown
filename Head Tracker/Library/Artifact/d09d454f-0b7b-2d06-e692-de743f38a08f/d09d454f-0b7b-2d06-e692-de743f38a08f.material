@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Love_Life
-guid: {a: 18036674666306510226, b: 18392357906218969510}
+guid: {a: 5757335371206446611, b: 5097435117064129724}
 xshader: {localId: 1, path: d09d454f-0b7b-2d06-e692-de743f38a08f--d09d454f-0b7b-2d06-e692-de743f38a08f.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 17600928323071392432, b: 230715637711332030}
+  guid: {a: 5389780486941814730, b: 8258390923704606636}
   floatmap:
     __class: Map
     _AmbientIntensity: 1

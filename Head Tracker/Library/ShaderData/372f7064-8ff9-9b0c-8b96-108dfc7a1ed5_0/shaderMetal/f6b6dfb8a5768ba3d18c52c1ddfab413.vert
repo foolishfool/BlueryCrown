@@ -12,14 +12,14 @@ struct buffer_t
 
 struct main0_out
 {
-    float4 v_gl_pos [[user(locn0)]];
-    float3 v_posWS [[user(locn1)]];
-    float3 v_nDirWS [[user(locn2)]];
-    float2 v_uv0 [[user(locn3)]];
-    float2 v_uv0_src [[user(locn4)]];
-    float2 v_uv1 [[user(locn5)]];
-    float3 v_tDirWS [[user(locn6)]];
-    float3 v_bDirWS [[user(locn7)]];
+    float4 v_gl_pos;
+    float3 v_posWS;
+    float3 v_nDirWS;
+    float2 v_uv0;
+    float2 v_uv0_src;
+    float2 v_uv1;
+    float3 v_tDirWS;
+    float3 v_bDirWS;
     float4 gl_Position [[position]];
 };
 
@@ -39,12 +39,16 @@ vertex main0_out main0(main0_in in [[stage_in]], constant buffer_t& buffer)
     out.v_uv0 = _23;
     out.v_uv0_src = _23;
     out.v_uv1 = float2(in.attTexcoord1.x, 1.0 - in.attTexcoord1.y);
-    float4 _69 = float4(in.attPosition, 1.0);
-    out.v_posWS = (buffer.u_Model * _69).xyz;
-    out.v_nDirWS = (buffer.u_TransposeInvModel * float4(in.attNormal, 0.0)).xyz;
-    out.v_tDirWS = (buffer.u_Model * float4(in.attTangent.xyz, 0.0)).xyz;
-    out.v_bDirWS = (buffer.u_Model * float4(fast::normalize(cross(in.attNormal, in.attTangent.xyz)) * in.attTangent.w, 0.0)).xyz;
-    out.gl_Position = buffer.u_MVP * _69;
+    float3 attBinormal = normalize(cross(in.attNormal, in.attTangent.xyz)) * in.attTangent.w;
+    float3 usedPosition = in.attPosition;
+    float3 usedNormal = in.attNormal;
+    float3 usedTangent = in.attTangent.xyz;
+    float3 usedBinormal = attBinormal;
+    out.v_posWS = (buffer.u_Model * float4(usedPosition, 1.0)).xyz;
+    out.v_nDirWS = (buffer.u_TransposeInvModel * float4(usedNormal, 0.0)).xyz;
+    out.v_tDirWS = (buffer.u_Model * float4(usedTangent, 0.0)).xyz;
+    out.v_bDirWS = (buffer.u_Model * float4(usedBinormal, 0.0)).xyz;
+    out.gl_Position = buffer.u_MVP * float4(usedPosition, 1.0);
     out.v_gl_pos = out.gl_Position;
     out.v_gl_pos = out.gl_Position;
     out.gl_Position.z = (out.gl_Position.z + out.gl_Position.w) * 0.5;       // Adjust clip-space for Metal

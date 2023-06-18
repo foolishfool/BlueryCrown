@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Character 18
-guid: {a: 595280054792672452, b: 16857230551237595542}
+guid: {a: 4882043142612571863, b: 1891585477218406022}
 xshader: {localId: 1, path: 53533b69-fa53-ded2-5d55-89df9bde0b5b--53533b69-fa53-ded2-5d55-89df9bde0b5b.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 4846622251608578289, b: 5899180152790862208}
+  guid: {a: 5350000036910174214, b: 13551709580393495207}
   floatmap:
     __class: Map
     _Cutoff: 0

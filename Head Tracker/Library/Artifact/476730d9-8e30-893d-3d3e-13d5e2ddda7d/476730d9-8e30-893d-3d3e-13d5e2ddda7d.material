@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: RuPaul
-guid: {a: 1965657058959324716, b: 2494953150103750330}
+guid: {a: 5138025027864244512, b: 14905579779135113873}
 xshader: {localId: 1, path: 476730d9-8e30-893d-3d3e-13d5e2ddda7d--476730d9-8e30-893d-3d3e-13d5e2ddda7d.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 8813003490741133057, b: 1121301375437165997}
+  guid: {a: 5679535476444053506, b: 9357452242662649992}
   floatmap:
     __class: Map
     _AmbientIntensity: 1

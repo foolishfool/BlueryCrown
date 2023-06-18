@@ -1,0 +1,15 @@
+[
+  {
+    "guid": {
+      "a": "c183d67a-56b6-b659-4941-f41827b10422",
+      "b": ""
+    },
+    "extraType": "ResItemFolder",
+    "name": "Crown",
+    "expandInPanel": false,
+    "version": "0.1.0",
+    "isVisibleInInspector": true,
+    "hideInPanel": false,
+    "objGuid": ""
+  }
+]

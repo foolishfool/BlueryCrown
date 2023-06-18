@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Killing_It
-guid: {a: 17601444938691297125, b: 10433460710112570794}
+guid: {a: 5293019246043427431, b: 5049607374130002834}
 xshader: {localId: 1, path: def4eec4-2676-7303-c6ff-bb049206a1ae--def4eec4-2676-7303-c6ff-bb049206a1ae.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 10179037650510453020, b: 15226101565260415407}
+  guid: {a: 5659401670503931174, b: 14672568889703838392}
   floatmap:
     __class: Map
     _AmbientIntensity: 1

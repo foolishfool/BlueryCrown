@@ -15,7 +15,7 @@ struct buffer_t
 
 struct main0_out
 {
-    float2 varScreenTexturePos [[user(locn0)]];
+    float2 varScreenTexturePos;
     float4 gl_Position [[position]];
 };
 
@@ -27,7 +27,7 @@ struct main0_in
 vertex main0_out main0(main0_in in [[stage_in]], constant buffer_t& buffer)
 {
     main0_out out = {};
-    out.varScreenTexturePos = fma((in.attPosition.xy + float2(1.0)) * float2(0.5), float2(buffer.uniSpanWidth, buffer.uniSpanHeight), float2(buffer.uniSliceOffsetWidth, buffer.uniSliceOffsetHeight)) / float2(buffer.uniRtWidth, buffer.uniRtHeight);
+    out.varScreenTexturePos = ((((in.attPosition.xy + float2(1.0)) / float2(2.0)) * float2(buffer.uniSpanWidth, buffer.uniSpanHeight)) + float2(buffer.uniSliceOffsetWidth, buffer.uniSliceOffsetHeight)) / float2(buffer.uniRtWidth, buffer.uniRtHeight);
     out.gl_Position = float4(in.attPosition, 1.0);
     out.gl_Position.z = (out.gl_Position.z + out.gl_Position.w) * 0.5;       // Adjust clip-space for Metal
     return out;

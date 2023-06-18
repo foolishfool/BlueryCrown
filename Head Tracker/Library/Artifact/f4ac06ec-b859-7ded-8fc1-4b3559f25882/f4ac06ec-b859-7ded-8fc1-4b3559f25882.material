@@ -1,0 +1,54 @@
+%YAML 1.1
+--- !Material &1
+name: Character 8
+guid: {a: 5727431896958436516, b: 4540588101931890878}
+xshader: {localId: 1, path: f4ac06ec-b859-7ded-8fc1-4b3559f25882--f4ac06ec-b859-7ded-8fc1-4b3559f25882.xshader}
+properties:
+  __class: PropertySheet
+  name: ""
+  guid: {a: 5671118144064588938, b: 4402274516659506828}
+  floatmap:
+    __class: Map
+    _Cutoff: 0.1000000014901161
+    _EmissiveIntensity: 1
+    _Env: 1
+    _EnvRot: 0
+    _FresnelIntensity: 3
+    _FresnelPow: 5
+    _Metallic: 0
+    _NormInt: 1
+    _Occlusion: 1
+    _Roughness: 0.5
+    _ThinFilmIOR: 5
+    _ThinFilmThickMin: 400
+    _UVRotation: 0
+  vec4map:
+    __class: Map
+    _AlbedoColor: {x: 1, y: 1, z: 1, w: 1}
+    _EmissiveCol: {x: 1, y: 1, z: 1, w: 1}
+    _FresnelCol: {x: 1, y: 1, z: 1, w: 1}
+  vec3map:
+    __class: Map
+  vec2map:
+    __class: Map
+    _Offset: {x: 0, y: 0}
+    _Tiling: {x: 1, y: 1}
+  mat4map:
+    __class: Map
+  texmap:
+    __class: Map
+    _AlbedoTexture: {localId: 1, path: 9a26df13-f7d8-215e-560a-9228819701a5--9a26df13-f7d8-215e-560a-9228819701a5.png}
+    _EmissiveTexture: {localId: 1, path: 00000000-0000-0000-0000-00000000001c--00000000-0000-0000-0000-00000000001c.png}
+    _EnvTex: {localId: 1, path: 00000000-0000-0000-0000-000000000020--00000000-0000-0000-0000-000000000020.png}
+    _FresnelTex: {localId: 1, path: 00000000-0000-0000-0000-00000000001c--00000000-0000-0000-0000-00000000001c.png}
+    _MRATex: {localId: 1, path: 00000000-0000-0000-0000-00000000001c--00000000-0000-0000-0000-00000000001c.png}
+    _NormalTexture: {localId: 1, path: 00000000-0000-0000-0000-00000000001f--00000000-0000-0000-0000-00000000001f.png}
+    _OpacityTexture: {localId: 1, path: 00000000-0000-0000-0000-000000000021--00000000-0000-0000-0000-000000000021.png}
+    _ThinTex: {localId: 1, path: 00000000-0000-0000-0000-00000000001c--00000000-0000-0000-0000-00000000001c.png}
+  intmap:
+    __class: Map
+renderQueue: -1
+enabledMacros:
+  __class: Map
+mshaderPath: ""
+instanceCount: 0

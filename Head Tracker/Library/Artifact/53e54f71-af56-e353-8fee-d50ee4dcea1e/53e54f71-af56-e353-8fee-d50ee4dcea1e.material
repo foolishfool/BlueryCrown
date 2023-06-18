@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Power
-guid: {a: 4200508342148561886, b: 905408605972933007}
+guid: {a: 5070707367355510333, b: 4374937038175811718}
 xshader: {localId: 1, path: 53e54f71-af56-e353-8fee-d50ee4dcea1e--53e54f71-af56-e353-8fee-d50ee4dcea1e.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 11911946570547287405, b: 14349990947437935524}
+  guid: {a: 4648829329923255114, b: 12513210412029425070}
   floatmap:
     __class: Map
     _AmbientIntensity: 1

@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Big_Bang
-guid: {a: 15008258220820787677, b: 7784553321846463629}
+guid: {a: 4612594434823280544, b: 11257887525773579696}
 xshader: {localId: 1, path: d9098926-8a94-a187-c0b0-33a7cbc1945c--d9098926-8a94-a187-c0b0-33a7cbc1945c.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 18394042318156144549, b: 16911845281184692866}
+  guid: {a: 5362133860457977949, b: 13266368339273128633}
   floatmap:
     __class: Map
     _AmbientIntensity: 1

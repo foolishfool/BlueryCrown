@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Crown Line
-guid: {a: 12267822007624749325, b: 2264542768729330827}
+guid: {a: 5663147198880764040, b: 11304585852643728006}
 xshader: {localId: 1, path: 12db70cb-c5d3-a8dc-6e83-88a101c446d4--12db70cb-c5d3-a8dc-6e83-88a101c446d4.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 16232396469753434661, b: 15313673533787886249}
+  guid: {a: 5257460503287162999, b: 8328934832564164002}
   floatmap:
     __class: Map
     _Cutoff: 0
@@ -24,7 +24,7 @@ properties:
     _UVRotation: 0
   vec4map:
     __class: Map
-    _AlbedoColor: {x: 1, y: 1, z: 1, w: 1}
+    _AlbedoColor: {x: 0.560784, y: 0.439216, z: 0.196078, w: 1}
     _EmissiveCol: {x: 1, y: 1, z: 1, w: 1}
     _FresnelCol: {x: 1, y: 1, z: 1, w: 1}
   vec3map:

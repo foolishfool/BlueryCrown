@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Black_Inside
-guid: {a: 4201441368520312601, b: 10980185693065804423}
+guid: {a: 5551697658488178245, b: 2621793089623381181}
 xshader: {localId: 1, path: 09007f93-1e9f-efae-8242-7083d3023474--09007f93-1e9f-efae-8242-7083d3023474.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 16737586086062367881, b: 6613921045121123717}
+  guid: {a: 5313621762001031902, b: 8722891784288116897}
   floatmap:
     __class: Map
     _AmbientIntensity: 1

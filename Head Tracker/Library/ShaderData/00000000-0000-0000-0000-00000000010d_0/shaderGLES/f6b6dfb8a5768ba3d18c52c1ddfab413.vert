@@ -12,7 +12,7 @@ layout(location = 0) in vec3 attPosition;
 
 void main()
 {
-    varScreenTexturePos = (((attPosition.xy + vec2(1.0)) * vec2(0.5)) * vec2(uniSpanWidth, uniSpanHeight) + vec2(uniSliceOffsetWidth, uniSliceOffsetHeight)) / vec2(uniRtWidth, uniRtHeight);
+    varScreenTexturePos = ((((attPosition.xy + vec2(1.0)) / vec2(2.0)) * vec2(uniSpanWidth, uniSpanHeight)) + vec2(uniSliceOffsetWidth, uniSliceOffsetHeight)) / vec2(uniRtWidth, uniRtHeight);
     gl_Position = vec4(attPosition, 1.0);
 }
 

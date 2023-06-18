@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: lambert2
-guid: {a: 14288919235317159274, b: 4834558166118898831}
+guid: {a: 5188224067110497278, b: 9941049737509926073}
 xshader: {localId: 1, path: 40481d86-fc64-0f9f-5a6a-c22c0aeae1ef--40481d86-fc64-0f9f-5a6a-c22c0aeae1ef.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 3117890644444879441, b: 11852484817819824548}
+  guid: {a: 4729709286757010894, b: 15538324181036299190}
   floatmap:
     __class: Map
     _Cutoff: 0

@@ -21,7 +21,8 @@ struct main0_in
 vertex main0_out main0(main0_in in [[stage_in]], constant buffer_t& buffer)
 {
     main0_out out = {};
-    out.gl_Position = buffer.u_MVP * float4(in.attPosition, 1.0);
+    float4 homogeneous_pos = float4(in.attPosition, 1.0);
+    out.gl_Position = buffer.u_MVP * homogeneous_pos;
     out.gl_Position.z = (out.gl_Position.z + out.gl_Position.w) * 0.5;       // Adjust clip-space for Metal
     return out;
 }

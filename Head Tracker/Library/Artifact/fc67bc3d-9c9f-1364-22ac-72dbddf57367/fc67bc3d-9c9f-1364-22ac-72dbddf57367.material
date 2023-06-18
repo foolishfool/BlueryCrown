@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: FilmStrip
-guid: {a: 16018326859535449769, b: 15801758221702754688}
+guid: {a: 5703220048917686745, b: 289621865897052044}
 xshader: {localId: 1, path: fc67bc3d-9c9f-1364-22ac-72dbddf57367--fc67bc3d-9c9f-1364-22ac-72dbddf57367.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 378853392160211986, b: 13028238326895758749}
+  guid: {a: 4835451432476281066, b: 6065456214959075742}
   floatmap:
     __class: Map
     _AmbientIntensity: 3.5

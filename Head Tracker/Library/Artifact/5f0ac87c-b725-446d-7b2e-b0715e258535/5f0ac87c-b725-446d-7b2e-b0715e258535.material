@@ -1,12 +1,12 @@
 %YAML 1.1
 --- !Material &1
 name: Glass
-guid: {a: 8954871359765285791, b: 183675607645882005}
+guid: {a: 4785350489058795046, b: 15391261843928822937}
 xshader: {localId: 1, path: 5f0ac87c-b725-446d-7b2e-b0715e258535--5f0ac87c-b725-446d-7b2e-b0715e258535.xshader}
 properties:
   __class: PropertySheet
   name: ""
-  guid: {a: 162830573474309079, b: 2524918964748114338}
+  guid: {a: 5519124000355862768, b: 3546451126165727679}
   floatmap:
     __class: Map
     _AmbientIntensity: 0.699999988079071
