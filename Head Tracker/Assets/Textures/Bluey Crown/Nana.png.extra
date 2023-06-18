@@ -1,12 +1,12 @@
 [
   {
     "guid": {
-      "a": "b753d88d-c369-2e36-af2e-1420f37d0b81",
+      "a": "b0b547f2-104d-c5ec-a357-3803a7fa15e0",
       "b": ""
     },
     "extraType": "ResItemPNGImage",
     "name": "Nana",
-    "expandInPanel": true,
+    "expandInPanel": false,
     "objGuid": "",
     "rttiType": "Texture2D",
     "version": "0.1.0",

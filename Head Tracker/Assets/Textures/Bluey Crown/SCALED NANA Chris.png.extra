@@ -1,20 +1,20 @@
 [
   {
     "guid": {
-      "a": "9435b171-8e07-4645-8fba-c4946fadf984",
+      "a": "9fc212d0-37b8-74ed-f130-e571c2da7459",
       "b": ""
     },
     "extraType": "ResItemPNGImage",
     "name": "SCALED NANA Chris",
-    "expandInPanel": true,
+    "expandInPanel": false,
     "objGuid": "",
     "rttiType": "Texture2D",
     "version": "0.1.0",
     "isVisibleInInspector": true,
     "hideInPanel": false,
-    "compressionType": 0,
+    "compressionType": 1,
     "quality": 0,
-    "maxResolution": 512,
+    "maxResolution": 256,
     "enableMipmap": false,
     "filterMin": 1,
     "filterMag": 1,

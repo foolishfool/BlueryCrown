@@ -15,10 +15,6 @@
     "skinObjGuid": "Guid(5713253695270231773, 9329691866080198044)",
     "references": [
       {
-        "propertyName": "_AlbedoTexture",
-        "guid": "2c06f198-d007-6669-5601-f1cedae3c1af"
-      },
-      {
         "propertyName": "_OpacityTexture",
         "guid": "00000000-0000-0000-0000-000000000021"
       },
@@ -45,6 +41,10 @@
       {
         "propertyName": "_EnvTex",
         "guid": "00000000-0000-0000-0000-000000000020"
+      },
+      {
+        "propertyName": "_AlbedoTexture",
+        "guid": "64efdbb7-df6a-e2e0-42b5-0beb09b3a38d"
       }
     ]
   }
