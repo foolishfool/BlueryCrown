@@ -1681,7 +1681,7 @@ name: ABC Logo
 guid: {a: 4737613913730594930, b: 5897437457902059167}
 enabled: true
 localPosition: {x: -0.00165305, y: 0.004337575, z: 0.03415909}
-localScale: {x: 0.6401573, y: 0.6401572, z: 0.6401573}
+localScale: {x: 0, y: 0, z: 0}
 localOrientation: {w: 0.7071067, x: 0.7071068, y: 5.155382e-05, z: -5.155383e-05}
 parent: {localId: 35}
 mobility:
